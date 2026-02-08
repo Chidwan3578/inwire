@@ -13,9 +13,10 @@ deps-injector uses factory functions `(container) => instance` as the single abs
 
 ## Container Methods
 
-- `.scope(extra)` — Creates a child container with additional deps. Child inherits parent singletons.
+- `.scope(extra, options?)` — Creates a child container with additional deps. Child inherits parent singletons. Pass `{ name }` for debugging/introspection.
 - `.extend(extra)` — Returns a new container with merged factories. Shares existing singleton cache.
-- `.preload(...keys)` — Eagerly resolves specific dependencies. Only way to await async `onInit()`.
+- `.preload(...keys)` — Eagerly resolves specific dependencies, or all if no keys given. Only way to await async `onInit()`.
+- `.reset(...keys)` — Invalidates cached singletons, forcing re-creation on next access. Does not affect parent scopes.
 - `.inspect()` — Returns the full dependency graph as `ContainerGraph` (serializable JSON).
 - `.describe(key)` — Returns `ProviderInfo` for a single provider.
 - `.health()` — Returns `ContainerHealth` with warnings (e.g. scope mismatches).
@@ -29,7 +30,8 @@ deps-injector uses factory functions `(container) => instance` as the single abs
 - `ResolvedDeps<T>` — Maps each key to its factory's return type
 - `OnInit` — Interface: `onInit(): void | Promise<void>`
 - `OnDestroy` — Interface: `onDestroy(): void | Promise<void>`
-- `ContainerGraph` — `{ providers: Record<string, ProviderInfo> }`
+- `ScopeOptions` — `{ name?: string }` — options for `scope()`
+- `ContainerGraph` — `{ name?: string, providers: Record<string, ProviderInfo> }`
 - `ContainerHealth` — `{ totalProviders, resolved, unresolved, warnings }`
 - `ContainerWarning` — `{ type: 'scope_mismatch' | 'duplicate_key', message, details }`
 - `ProviderInfo` — `{ key, resolved, deps, scope: 'singleton' | 'transient' }`
@@ -39,7 +41,7 @@ deps-injector uses factory functions `(container) => instance` as the single abs
 All errors extend `ContainerError` and include `hint` (actionable fix) and `details` (structured context).
 
 - `ContainerConfigError` — Non-function value in deps definition
-- `ReservedKeyError` — Reserved container method name used as dependency key
+- `ReservedKeyError` — Reserved container method name used as dependency key (`reset` included)
 - `ProviderNotFoundError` — Dependency not found during resolution (includes fuzzy suggestion)
 - `CircularDependencyError` — Circular dependency detected in resolution chain
 - `UndefinedReturnError` — Factory returned `undefined`

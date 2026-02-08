@@ -44,6 +44,7 @@ export const RESERVED_KEYS = [
   'scope',
   'extend',
   'preload',
+  'reset',
   'inspect',
   'describe',
   'health',
@@ -52,6 +53,14 @@ export const RESERVED_KEYS = [
 ] as const;
 
 export type ReservedKey = (typeof RESERVED_KEYS)[number];
+
+/**
+ * Options for creating a scoped container.
+ */
+export interface ScopeOptions {
+  /** Optional name for the scope, useful for debugging and introspection. */
+  name?: string;
+}
 
 /**
  * Full container type exposed to the user.
@@ -87,7 +96,7 @@ export interface IContainer<T extends Record<string, any> = Record<string, any>>
    * request.logger;    // inherited from parent
    * ```
    */
-  scope<E extends DepsDefinition>(extra: E): Container<T & ResolvedDeps<E>>;
+  scope<E extends DepsDefinition>(extra: E, options?: ScopeOptions): Container<T & ResolvedDeps<E>>;
 
   /**
    * Returns a new container with additional dependencies.
@@ -101,12 +110,13 @@ export interface IContainer<T extends Record<string, any> = Record<string, any>>
   extend<E extends DepsDefinition>(extra: E): Container<T & ResolvedDeps<E>>;
 
   /**
-   * Pre-resolves specific dependencies (warm-up).
-   * Useful for eagerly initializing critical services at startup.
+   * Pre-resolves dependencies (warm-up).
+   * Call with specific keys to resolve only those, or without arguments to resolve all.
    *
    * @example
    * ```typescript
-   * await container.preload('db', 'cache');
+   * await container.preload('db', 'cache'); // specific deps
+   * await container.preload();              // all deps
    * ```
    */
   preload(...keys: (keyof T)[]): Promise<void>;
@@ -146,6 +156,18 @@ export interface IContainer<T extends Record<string, any> = Record<string, any>>
   health(): ContainerHealth;
 
   /**
+   * Invalidates cached singletons, forcing re-creation on next access.
+   * Does not affect parent scopes.
+   *
+   * @example
+   * ```typescript
+   * container.reset('db');       // reset one
+   * container.reset('db', 'cache'); // reset multiple
+   * ```
+   */
+  reset(...keys: (keyof T)[]): void;
+
+  /**
    * Disposes the container. Calls `onDestroy()` on all resolved instances
    * that implement it, in reverse resolution order.
    *
@@ -161,6 +183,7 @@ export interface IContainer<T extends Record<string, any> = Record<string, any>>
  * Full dependency graph of the container.
  */
 export interface ContainerGraph {
+  name?: string;
   providers: Record<string, ProviderInfo>;
 }
 

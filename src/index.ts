@@ -34,6 +34,7 @@ export type {
   IContainer,
   ProviderInfo,
   ResolvedDeps,
+  ScopeOptions,
 } from './domain/types.js';
 
 // Lifecycle interfaces

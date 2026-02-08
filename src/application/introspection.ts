@@ -27,7 +27,8 @@ export class Introspection {
         scope: isTransient(factory) ? 'transient' : 'singleton',
       };
     }
-    return { providers };
+    const name = this.resolver.getName();
+    return name ? { name, providers } : { providers };
   }
 
   /**
@@ -82,6 +83,8 @@ export class Introspection {
       const status = resolved ? '(resolved)' : '(pending)';
       parts.push(`${key}${depsStr} ${status}`);
     }
-    return `Container { ${parts.join(', ')} }`;
+    const name = this.resolver.getName();
+    const label = name ? `Scope(${name})` : 'Container';
+    return `${label} { ${parts.join(', ')} }`;
   }
 }

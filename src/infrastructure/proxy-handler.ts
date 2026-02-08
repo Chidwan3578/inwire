@@ -26,14 +26,23 @@ export class Resolver implements IResolver {
   /** Parent resolver for scoped containers */
   private readonly parent?: Resolver;
 
+  /** Optional name for debugging/introspection */
+  private readonly name?: string;
+
   constructor(
     factories: Map<string, Factory>,
     cache?: Map<string, unknown>,
     parent?: Resolver,
+    name?: string,
   ) {
     this.factories = factories;
     this.cache = cache ?? new Map();
     this.parent = parent;
+    this.name = name;
+  }
+
+  getName(): string | undefined {
+    return this.name;
   }
 
   /**

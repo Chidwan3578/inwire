@@ -100,6 +100,47 @@ describe('scope', () => {
     expect(grandchild.env).toBe('test');
   });
 
+  it('named scope: toString() displays the name', () => {
+    const parent = createContainer({
+      db: () => 'pg',
+    });
+
+    const child = parent.scope(
+      { requestId: () => 'req-1' },
+      { name: 'request-123' },
+    );
+
+    const str = child.toString();
+    expect(str).toContain('Scope(request-123)');
+    expect(str).not.toContain('Container {');
+  });
+
+  it('named scope: inspect() contains the name', () => {
+    const parent = createContainer({
+      db: () => 'pg',
+    });
+
+    const child = parent.scope(
+      { requestId: () => 'req-1' },
+      { name: 'my-scope' },
+    );
+
+    const graph = child.inspect();
+    expect(graph.name).toBe('my-scope');
+  });
+
+  it('unnamed scope: behavior unchanged', () => {
+    const parent = createContainer({
+      db: () => 'pg',
+    });
+
+    const child = parent.scope({ requestId: () => 'req-1' });
+
+    const str = child.toString();
+    expect(str).toContain('Container {');
+    expect(child.inspect().name).toBeUndefined();
+  });
+
   it('dispose on child does not affect parent', async () => {
     let parentDestroyed = false;
     let childDestroyed = false;

@@ -73,10 +73,10 @@ container.logger === container.logger;       // true  — same instance
 container.requestId === container.requestId; // false — different every time
 ```
 
-## container.scope(extra)
+## container.scope(extra, options?)
 
 ```typescript
-scope<E extends DepsDefinition>(extra: E): Container<T & ResolvedDeps<E>>
+scope<E extends DepsDefinition>(extra: E, options?: ScopeOptions): Container<T & ResolvedDeps<E>>
 ```
 
 Creates a child container with additional dependencies. The child inherits all parent singletons via a parent Resolver chain. Scoped singletons are independent — they are cached in the child's own cache.
@@ -97,6 +97,22 @@ request.logger;     // inherited from parent (same instance)
 ```
 
 Use `scope()` for request-level isolation where child deps should not pollute the parent.
+
+### Named Scopes
+
+Pass `{ name }` for debugging and introspection:
+
+```typescript
+const request = app.scope(
+  { requestId: () => crypto.randomUUID() },
+  { name: 'request-123' },
+);
+
+String(request);        // "Scope(request-123) { requestId (pending) }"
+request.inspect().name; // "request-123"
+```
+
+Named scopes show their name in `toString()` output (`Scope(name) { ... }` instead of `Container { ... }`) and include the name in `inspect()` results.
 
 ## container.extend(extra)
 
@@ -129,7 +145,7 @@ extended.db;     // new dependency
 preload(...keys: (keyof T)[]): Promise<void>
 ```
 
-Eagerly resolves specific dependencies (warm-up). Useful for initializing critical services at startup.
+Eagerly resolves specific dependencies (warm-up). Call with specific keys to resolve only those, or **without arguments to resolve all dependencies**.
 
 ```typescript
 const container = createContainer({
@@ -140,9 +156,32 @@ const container = createContainer({
 
 await container.preload('db', 'cache');
 // db and cache are now resolved, logger is still lazy
+
+await container.preload();
+// resolve ALL dependencies at once
 ```
 
 **GOTCHA — CRITICAL**: `preload()` is the **only** way to properly await async `onInit()` hooks. During normal property access, `onInit()` is called but NOT awaited (fire-and-forget, errors swallowed). If your service has async initialization (e.g. database connection), you MUST use `preload()` to surface errors.
+
+## container.reset(...keys)
+
+```typescript
+reset(...keys: (keyof T)[]): void
+```
+
+Invalidates cached singletons, forcing re-creation on next access. The next property access will re-execute the factory and call `onInit()` again if implemented.
+
+```typescript
+const container = createContainer({
+  db: () => new Database(),
+});
+
+container.db;         // creates Database
+container.reset('db');
+container.db;         // creates a NEW Database instance
+```
+
+`reset()` does not affect parent scopes — it only clears the cache of the container it's called on. Resetting an unresolved key is a silent no-op.
 
 ## container.inspect()
 
@@ -150,10 +189,11 @@ await container.preload('db', 'cache');
 inspect(): ContainerGraph
 ```
 
-Returns the full dependency graph as a serializable JSON object.
+Returns the full dependency graph as a serializable JSON object. Named scopes include a `name` field.
 
 ```typescript
 interface ContainerGraph {
+  name?: string;
   providers: Record<string, ProviderInfo>;
 }
 
@@ -368,6 +408,7 @@ type Factory<T = any> = (container: any) => T;
 type DepsDefinition = Record<string, Factory>;
 type ResolvedDeps<T extends DepsDefinition> = { readonly [K in keyof T]: ReturnType<T[K]> };
 type Container<T extends Record<string, any> = Record<string, any>> = T & IContainer<T>;
+interface ScopeOptions { name?: string }
 ```
 
 ## Error Reference
@@ -390,7 +431,7 @@ Details: `{ key, actualType }`
 
 ### ReservedKeyError
 
-Thrown when a reserved container method name is used as a dependency key. Reserved keys: `scope`, `extend`, `preload`, `inspect`, `describe`, `health`, `dispose`, `toString`.
+Thrown when a reserved container method name is used as a dependency key. Reserved keys: `scope`, `extend`, `preload`, `reset`, `inspect`, `describe`, `health`, `dispose`, `toString`.
 
 ```
 'inspect' is a reserved container method.
@@ -469,7 +510,7 @@ Properties: `type: 'scope_mismatch'`, `message`, `hint`, `details: { singleton, 
 
 2. **Scope mismatch**: A singleton depending on a transient freezes the transient value. The singleton will always see the first resolved value. Check `container.health().warnings` for `scope_mismatch` warnings.
 
-3. **Reserved keys**: `scope`, `extend`, `preload`, `inspect`, `describe`, `health`, `dispose`, `toString` cannot be used as dependency keys. Using them throws `ReservedKeyError`.
+3. **Reserved keys**: `scope`, `extend`, `preload`, `reset`, `inspect`, `describe`, `health`, `dispose`, `toString` cannot be used as dependency keys. Using them throws `ReservedKeyError`.
 
 4. **Undefined return**: Factories that return `undefined` (missing return statement, void function) throw `UndefinedReturnError`. Every factory must return a value.
 
@@ -478,3 +519,5 @@ Properties: `type: 'scope_mismatch'`, `message`, `hint`, `details: { singleton, 
 6. **extend() shares cache**: `extend()` copies the singleton cache. Already-resolved singletons are shared. New resolutions in the extended container do NOT propagate back to the original.
 
 7. **scope() vs extend()**: `scope()` creates a parent-child chain (child delegates unknown keys to parent). `extend()` creates a flat merged container. Use `scope()` for request-level isolation, `extend()` for additive composition.
+
+8. **reset() is scope-local**: `reset()` only clears the cache of the container it's called on. In a scope, resetting a key does not affect the parent container's cache.

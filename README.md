@@ -144,6 +144,20 @@ request.requestId;   // scoped singleton (unique to this child)
 request.logger;      // inherited from parent
 ```
 
+#### Named Scopes
+
+Pass an options object to name a scope for debugging and introspection:
+
+```typescript
+const request = container.scope(
+  { requestId: () => crypto.randomUUID() },
+  { name: 'request-123' },
+);
+
+String(request);       // "Scope(request-123) { requestId (pending) }"
+request.inspect().name; // "request-123"
+```
+
 ### Transient
 
 By default every dependency is a **singleton** (created once, cached forever). When you need a **fresh instance on every access**, wrap the factory with `transient()`:
@@ -214,9 +228,30 @@ const container = createContainer({
 
 await container.preload('db', 'cache');
 // db and cache are now resolved, logger is still lazy
+
+await container.preload();
+// resolve ALL dependencies at once
 ```
 
 **This is how you safely initialize async services.** See [⚠️ Important: Async Lifecycle](#️-important-async-lifecycle) above.
+
+### Reset
+
+Invalidate cached singletons to force re-creation on next access:
+
+```typescript
+const container = createContainer({
+  db: () => new Database(),
+  cache: () => new Redis(),
+});
+
+container.db;  // creates Database
+container.reset('db');
+container.db;  // creates a NEW Database instance
+
+// Other singletons are untouched
+// Reset in a scope does not affect the parent
+```
 
 ### Introspection
 
@@ -386,9 +421,10 @@ const graph = JSON.stringify(container.inspect(), null, 2);
 
 | Method | Description |
 |---|---|
-| `container.scope(extra)` | Creates a child container with additional deps |
+| `container.scope(extra, options?)` | Creates a child container with additional deps. Pass `{ name }` for debugging |
 | `container.extend(extra)` | Returns a new container with additional deps (shared cache) |
-| `container.preload(...keys)` | Eagerly resolves specific dependencies |
+| `container.preload(...keys)` | Eagerly resolves specific dependencies, or all if no keys given |
+| `container.reset(...keys)` | Invalidates cached singletons, forcing re-creation on next access |
 | `container.inspect()` | Returns the full dependency graph |
 | `container.describe(key)` | Returns info about a single provider |
 | `container.health()` | Returns health status and warnings |
@@ -409,6 +445,7 @@ const graph = JSON.stringify(container.inspect(), null, 2);
 | `ContainerWarning` | Warning object (`scope_mismatch` \| `duplicate_key`) |
 | `ProviderInfo` | Return type of `describe()` |
 | `IContainer<T>` | Container methods interface |
+| `ScopeOptions` | Options for `scope()` (`{ name?: string }`) |
 
 ### Errors
 

@@ -94,6 +94,33 @@ describe('lifecycle', () => {
     expect(initialized).toBe(true);
   });
 
+  it('preload without args resolves all deps', async () => {
+    const resolved: string[] = [];
+
+    const container = createContainer({
+      db: () => { resolved.push('db'); return 'db'; },
+      cache: () => { resolved.push('cache'); return 'cache'; },
+      logger: () => { resolved.push('logger'); return 'logger'; },
+    });
+
+    expect(resolved).toEqual([]);
+    await container.preload();
+    expect(resolved).toEqual(['db', 'cache', 'logger']);
+  });
+
+  it('preload without args calls onInit on all services', async () => {
+    const inited: string[] = [];
+
+    const container = createContainer({
+      db: () => ({ onInit() { inited.push('db'); } }),
+      cache: () => ({ onInit() { inited.push('cache'); } }),
+    });
+
+    await container.preload();
+    expect(inited).toContain('db');
+    expect(inited).toContain('cache');
+  });
+
   it('async onInit errors are swallowed (fire-and-forget)', async () => {
     const container = createContainer({
       failing: () => ({

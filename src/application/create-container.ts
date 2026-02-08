@@ -1,4 +1,4 @@
-import type { Container, DepsDefinition, Factory, ResolvedDeps } from '../domain/types.js';
+import type { Container, DepsDefinition, Factory, ResolvedDeps, ScopeOptions } from '../domain/types.js';
 import { hasOnDestroy } from '../domain/lifecycle.js';
 import { Validator } from '../domain/validation.js';
 import { Resolver } from '../infrastructure/proxy-handler.js';
@@ -54,7 +54,7 @@ export function createContainer<T extends DepsDefinition>(
 export function buildContainerProxy(resolver: Resolver): Container<any> {
   const introspection = new Introspection(resolver);
   const methods: Record<string, Function> = {
-    scope: (extra: DepsDefinition) => createScope(resolver, extra),
+    scope: (extra: DepsDefinition, options?: ScopeOptions) => createScope(resolver, extra, options),
 
     extend: (extra: DepsDefinition) => {
       validator.validateConfig(extra);
@@ -68,8 +68,16 @@ export function buildContainerProxy(resolver: Resolver): Container<any> {
     },
 
     preload: async (...keys: string[]) => {
-      for (const key of keys) {
+      const toResolve = keys.length > 0 ? keys : [...resolver.getFactories().keys()];
+      for (const key of toResolve) {
         resolver.resolve(key);
+      }
+    },
+
+    reset: (...keys: string[]) => {
+      const cache = resolver.getCache();
+      for (const key of keys) {
+        cache.delete(key);
       }
     },
 

@@ -1,10 +1,10 @@
 /**
- * deps-injector — AI-First dependency injection.
+ * inwire — AI-First dependency injection.
  * Zero ceremony, full TypeScript inference, no decorators, no tokens.
  *
  * @example
  * ```typescript
- * import { createContainer, transient } from 'deps-injector';
+ * import { createContainer, transient } from 'inwire';
  *
  * const container = createContainer({
  *   logger: () => new LoggerService(),

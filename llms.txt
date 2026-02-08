@@ -1,9 +1,9 @@
-# deps-injector
+# inwire
 
 > Zero-ceremony dependency injection for TypeScript. Full inference, no decorators, no tokens.
 > Proxy-based lazy singleton resolution. ~4.7KB gzipped, 0 runtime deps.
 
-deps-injector uses factory functions `(container) => instance` as the single abstraction. Property access on the container triggers lazy resolution through a Proxy. Instances are cached as singletons by default. TypeScript infers the full container type from the factory definitions — no manual type wiring. Built-in introspection methods return serializable JSON, making the dependency graph directly consumable by LLMs and AI tooling.
+inwire uses factory functions `(container) => instance` as the single abstraction. Property access on the container triggers lazy resolution through a Proxy. Instances are cached as singletons by default. TypeScript infers the full container type from the factory definitions — no manual type wiring. Built-in introspection methods return serializable JSON, making the dependency graph directly consumable by LLMs and AI tooling.
 
 ## Core API
 

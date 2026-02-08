@@ -1,9 +1,9 @@
-# deps-injector
+# inwire
 
 Zero-ceremony dependency injection for TypeScript. Full inference, no decorators, no tokens. Built-in introspection for AI tooling and debugging.
 
-[![Bundle size](https://img.shields.io/bundlephobia/minzip/deps-injector)](https://bundlephobia.com/package/deps-injector)
-[![Dependencies](https://img.shields.io/librariesio/release/npm/deps-injector)](https://www.npmjs.com/package/deps-injector)
+[![Bundle size](https://img.shields.io/bundlephobia/minzip/inwire)](https://bundlephobia.com/package/inwire)
+[![Dependencies](https://img.shields.io/librariesio/release/npm/inwire)](https://www.npmjs.com/package/inwire)
 [![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen)](https://github.com)
 [![Speed](https://img.shields.io/badge/tests-%3C30ms-brightgreen)](https://github.com)
 [![Coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-brightgreen)](./vitest.config.ts)
@@ -13,13 +13,13 @@ Zero-ceremony dependency injection for TypeScript. Full inference, no decorators
 ## Install
 
 ```bash
-npm i deps-injector
+npm i inwire
 ```
 
 ## Quick Start
 
 ```typescript
-import { createContainer } from 'deps-injector';
+import { createContainer } from 'inwire';
 
 const container = createContainer({
   logger: () => new LoggerService(),
@@ -163,7 +163,7 @@ request.inspect().name; // "request-123"
 By default every dependency is a **singleton** (created once, cached forever). When you need a **fresh instance on every access**, wrap the factory with `transient()`:
 
 ```typescript
-import { createContainer, transient } from 'deps-injector';
+import { createContainer, transient } from 'inwire';
 
 const container = createContainer({
   logger: () => new LoggerService(),                  // singleton (default)
@@ -179,7 +179,7 @@ container.requestId === container.requestId; // false — different every time
 Implement `onInit()` for post-creation setup and `onDestroy()` for cleanup:
 
 ```typescript
-import type { OnInit, OnDestroy } from 'deps-injector';
+import type { OnInit, OnDestroy } from 'inwire';
 
 class Database implements OnInit, OnDestroy {
   async onInit() { await this.connect(); }
@@ -346,7 +346,7 @@ container.userServce;
 Detect accidental key collisions when spreading modules:
 
 ```typescript
-import { detectDuplicateKeys } from 'deps-injector';
+import { detectDuplicateKeys } from 'inwire';
 
 const duplicates = detectDuplicateKeys(authModule, userModule, dbModule);
 // ['logger'] — appears in more than one module
@@ -354,7 +354,7 @@ const duplicates = detectDuplicateKeys(authModule, userModule, dbModule);
 
 ## Comparison
 
-| Feature | deps-injector | awilix | tsyringe | Inversify | NestJS |
+| Feature | inwire | awilix | tsyringe | Inversify | NestJS |
 |---|---|---|---|---|---|
 | Decorators required | No | No | Yes | Yes | Yes |
 | Tokens/symbols | No | No | Yes | Yes | Yes |
@@ -393,10 +393,10 @@ This package ships with [llms.txt](https://llmstxt.org/) files for AI-assisted d
 - **`llms.txt`** — Concise index following the llms.txt standard
 - **`llms-full.txt`** — Complete API reference optimized for LLM context windows
 
-Use them to feed deps-injector documentation to any LLM or AI coding tool:
+Use them to feed inwire documentation to any LLM or AI coding tool:
 
 ```bash
-cat node_modules/deps-injector/llms-full.txt
+cat node_modules/inwire/llms-full.txt
 ```
 
 Compatible with [Context7](https://context7.com/) and any tool that supports the llms.txt standard.

@@ -43,13 +43,13 @@ describe('transient', () => {
     const factory = () => 42;
     const wrapped = transient(factory);
 
-    const TRANSIENT_MARKER = Symbol.for('deps-injector:transient');
+    const TRANSIENT_MARKER = Symbol.for('inwire:transient');
     expect((wrapped as any)[TRANSIENT_MARKER]).toBe(true);
   });
 
   it('non-transient factory does not have marker', () => {
     const factory = () => 42;
-    const TRANSIENT_MARKER = Symbol.for('deps-injector:transient');
+    const TRANSIENT_MARKER = Symbol.for('inwire:transient');
     expect((factory as any)[TRANSIENT_MARKER]).toBeUndefined();
   });
 

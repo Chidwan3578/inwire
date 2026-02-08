@@ -1,5 +1,5 @@
 {
-  "name": "deps-injector",
+  "name": "inwire",
   "version": "0.0.0",
   "description": "Zero-ceremony dependency injection for TypeScript. Full inference, no decorators, no tokens. Built-in introspection for AI tooling.",
   "type": "module",
@@ -43,6 +43,14 @@
     "ai-first",
     "clean-architecture"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axelhamil/inwire.git"
+  },
+  "homepage": "https://github.com/axelhamil/inwire#readme",
+  "bugs": {
+    "url": "https://github.com/axelhamil/inwire/issues"
+  },
   "license": "MIT",
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.0",

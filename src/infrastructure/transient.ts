@@ -4,7 +4,7 @@ import type { Factory } from '../domain/types.js';
  * Symbol used to mark a factory as transient.
  * Transient factories create a new instance on every access.
  */
-export const TRANSIENT_MARKER = Symbol.for('deps-injector:transient');
+export const TRANSIENT_MARKER = Symbol.for('inwire:transient');
 
 /**
  * A factory wrapper that marks it as transient.
@@ -20,7 +20,7 @@ export interface TransientFactory<T = any> {
  *
  * @example
  * ```typescript
- * import { createContainer, transient } from 'deps-injector';
+ * import { createContainer, transient } from 'inwire';
  *
  * const container = createContainer({
  *   logger: () => new LoggerService(),                  // singleton (default)

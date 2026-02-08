@@ -1,9 +1,9 @@
-# deps-injector — Complete API Reference
+# inwire — Complete API Reference
 
 > Zero-ceremony dependency injection for TypeScript. Full inference, no decorators, no tokens.
 > Proxy-based lazy singleton resolution. ~4.7KB gzipped, 0 runtime deps.
 
-Install: `npm i deps-injector`
+Install: `npm i inwire`
 License: MIT
 Exports: ESM + CJS with full .d.ts
 
@@ -29,7 +29,7 @@ function createContainer<T extends DepsDefinition>(defs: T): Container<ResolvedD
 Creates a DI container from an object of factory functions. Each factory receives the container as its argument and returns an instance. Dependencies are resolved lazily on first property access and cached as singletons by default.
 
 ```typescript
-import { createContainer } from 'deps-injector';
+import { createContainer } from 'inwire';
 
 const container = createContainer({
   logger: () => new LoggerService(),
@@ -59,10 +59,10 @@ Validation runs at creation time: non-function values throw `ContainerConfigErro
 function transient<T>(factory: Factory<T>): Factory<T>
 ```
 
-Marks a factory as transient — a new instance is created on every property access, bypassing the singleton cache. Internally attaches a `Symbol.for('deps-injector:transient')` marker.
+Marks a factory as transient — a new instance is created on every property access, bypassing the singleton cache. Internally attaches a `Symbol.for('inwire:transient')` marker.
 
 ```typescript
-import { createContainer, transient } from 'deps-injector';
+import { createContainer, transient } from 'inwire';
 
 const container = createContainer({
   logger: () => new LoggerService(),                  // singleton (default)
@@ -298,7 +298,7 @@ function detectDuplicateKeys(...modules: Record<string, unknown>[]): string[]
 Detects duplicate keys across multiple module objects. Returns an array of keys that appear in more than one module. Use this before spreading modules into `createContainer()` to catch accidental collisions.
 
 ```typescript
-import { detectDuplicateKeys } from 'deps-injector';
+import { detectDuplicateKeys } from 'inwire';
 
 const authModule = { logger: () => new AuthLogger(), auth: () => new AuthService() };
 const userModule = { logger: () => new UserLogger(), user: () => new UserService() };
@@ -333,7 +333,7 @@ interface OnDestroy {
 Lifecycle hooks are **duck-typed** — no need to explicitly implement the interface. Any object with an `onInit` or `onDestroy` method will be detected automatically.
 
 ```typescript
-import type { OnInit, OnDestroy } from 'deps-injector';
+import type { OnInit, OnDestroy } from 'inwire';
 
 class Database implements OnInit, OnDestroy {
   async onInit() { await this.connect(); }
@@ -381,7 +381,7 @@ const container = createContainer({
 Use `satisfies DepsDefinition` on module objects for type checking without losing literal types:
 
 ```typescript
-import type { DepsDefinition } from 'deps-injector';
+import type { DepsDefinition } from 'inwire';
 
 const dbModule = {
   db: () => new Database(),

@@ -13,7 +13,7 @@ Type-safe dependency injection for TypeScript. Builder pattern, full inference, 
 ## Install
 
 ```bash
-npm i inwire
+pnpm add inwire  # or npm i inwire
 ```
 
 ## Quick Start
@@ -97,6 +97,16 @@ app.db; // safe to use, fully initialized
 - **Testability** — swap any dependency for a mock at creation time, no monkey-patching or `jest.mock`
 - **Decoupling** — program against interfaces, not concrete imports; swap implementations without touching consumers
 - **Visibility** — inspect the full dependency graph at runtime, catch scope mismatches, and monitor container health
+
+## Why inwire?
+
+- **Full type inference** — `c.db` gives you native autocomplete with zero annotations. No tokens, no decorators, no `container.get<T>('key')`.
+- **Automatic dependency tracking** — a tracking Proxy records which keys each factory accesses at resolution time. The dependency graph builds itself.
+- **Circular dependency detection** — cycles are caught at resolution time with the full chain (`A → B → C → A`) and actionable fix suggestions. No stack overflow, no cryptic errors. Most DI containers (awilix, ioctopus) just crash.
+- **Smart errors** — 7 error types, each with `hint`, `details`, and fuzzy matching ("did you mean `userService`?"). Designed for both humans and LLMs to parse.
+- **Built-in introspection** — `inspect()` returns a serializable JSON graph. Feed it to an LLM, render it in a dashboard, or use `health()` to catch scope mismatches at runtime.
+- **Runtime agnostic** — pure ES2022. No decorators, no `reflect-metadata`, no compiler plugins. Works in Node.js, Deno, Bun, Cloudflare Workers, Vercel Edge, and browsers.
+- **Tiny** — 3.2 KB gzip, zero dependencies.
 
 ## Features
 

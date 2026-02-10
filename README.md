@@ -2,13 +2,13 @@
 
 Zero-ceremony dependency injection for TypeScript. Full inference, no decorators, no tokens. Built-in introspection for AI tooling and debugging.
 
+[![NPM Version](https://img.shields.io/npm/v/inwire)](https://www.npmjs.com/package/inwire)
+[![CI](https://img.shields.io/github/actions/workflow/status/axelhamil/inwire/ci.yml)](https://github.com/axelhamil/inwire/actions)
 [![Bundle size](https://img.shields.io/bundlephobia/minzip/inwire)](https://bundlephobia.com/package/inwire)
-[![Dependencies](https://img.shields.io/librariesio/release/npm/inwire)](https://www.npmjs.com/package/inwire)
-[![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen)](https://github.com)
-[![Speed](https://img.shields.io/badge/tests-%3C30ms-brightgreen)](https://github.com)
-[![Coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25-brightgreen)](./vitest.config.ts)
+[![NPM Downloads](https://img.shields.io/npm/dm/inwire)](https://www.npmjs.com/package/inwire)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![License](https://img.shields.io/npm/l/inwire)](https://github.com/axelhamil/inwire/blob/main/LICENSE)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/inwire)
 
 ## Install
 

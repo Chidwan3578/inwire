@@ -1,9 +1,9 @@
-import type { Container, Factory, RESERVED_KEYS } from "../domain/types.js";
-import { RESERVED_KEYS as RESERVED } from "../domain/types.js";
-import { ReservedKeyError } from "../domain/errors.js";
-import { transient as markTransient } from "../infrastructure/transient.js";
-import { Resolver } from "../infrastructure/resolver.js";
-import { buildContainerProxy } from "./container-proxy.js";
+import { ReservedKeyError } from '../domain/errors.js';
+import type { Container, Factory, RESERVED_KEYS } from '../domain/types.js';
+import { RESERVED_KEYS as RESERVED } from '../domain/types.js';
+import { Resolver } from '../infrastructure/resolver.js';
+import { transient as markTransient } from '../infrastructure/transient.js';
+import { buildContainerProxy } from './container-proxy.js';
 
 /**
  * Fluent builder that constructs a typed DI container incrementally.
@@ -17,6 +17,7 @@ import { buildContainerProxy } from "./container-proxy.js";
  */
 export class ContainerBuilder<
   TContract extends Record<string, unknown> = Record<string, unknown>,
+  // biome-ignore lint/complexity/noBannedTypes: {} is the correct generic default for "no deps accumulated yet"
   TBuilt extends Record<string, unknown> = {},
 > {
   private readonly factories = new Map<string, Factory>();
@@ -32,18 +33,16 @@ export class ContainerBuilder<
     key: K & (K extends (typeof RESERVED_KEYS)[number] ? never : K),
     factoryOrInstance:
       | ((c: TBuilt) => V)
+      // biome-ignore lint/complexity/noBannedTypes: Function is the correct type-level discriminator for factory vs instance
       | (V & (V extends Function ? never : V)),
   ): ContainerBuilder<TContract, TBuilt & Record<K, V>> {
     this.validateKey(key);
-    if (typeof factoryOrInstance === "function") {
+    if (typeof factoryOrInstance === 'function') {
       this.factories.set(key, factoryOrInstance as Factory);
     } else {
       this.factories.set(key, () => factoryOrInstance);
     }
-    return this as unknown as ContainerBuilder<
-      TContract,
-      TBuilt & Record<K, V>
-    >;
+    return this as unknown as ContainerBuilder<TContract, TBuilt & Record<K, V>>;
   }
 
   /**
@@ -56,10 +55,7 @@ export class ContainerBuilder<
     this.validateKey(key);
     this.factories.set(key, markTransient(factory as Factory));
     this.transientKeys.add(key);
-    return this as unknown as ContainerBuilder<
-      TContract,
-      TBuilt & Record<K, V>
-    >;
+    return this as unknown as ContainerBuilder<TContract, TBuilt & Record<K, V>>;
   }
 
   /**
@@ -67,9 +63,7 @@ export class ContainerBuilder<
    * `c` in the module's factories is fully typed with all previously registered deps.
    */
   addModule<TNew extends Record<string, unknown>>(
-    module: (
-      builder: ContainerBuilder<TContract, TBuilt>,
-    ) => ContainerBuilder<TContract, TNew>,
+    module: (builder: ContainerBuilder<TContract, TBuilt>) => ContainerBuilder<TContract, TNew>,
   ): ContainerBuilder<TContract, TNew> {
     return module(this);
   }

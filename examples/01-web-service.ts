@@ -28,16 +28,30 @@ interface IUserService {
 // ── Concrete implementations ────────────────────────────────────────────────
 
 class ConsoleLogger implements ILogger {
-  onInit() { console.log('[Logger] initialized'); }
-  onDestroy() { console.log('[Logger] shut down'); }
-  log(msg: string) { console.log(`[Logger] ${msg}`); }
+  onInit() {
+    console.log('[Logger] initialized');
+  }
+  onDestroy() {
+    console.log('[Logger] shut down');
+  }
+  log(msg: string) {
+    console.log(`[Logger] ${msg}`);
+  }
 }
 
 class PgDatabase implements IDatabase {
   connected = false;
-  onInit() { this.connected = true; console.log('[Database] connected'); }
-  onDestroy() { this.connected = false; console.log('[Database] disconnected'); }
-  query(sql: string) { return `result of: ${sql}`; }
+  onInit() {
+    this.connected = true;
+    console.log('[Database] connected');
+  }
+  onDestroy() {
+    this.connected = false;
+    console.log('[Database] disconnected');
+  }
+  query(sql: string) {
+    return `result of: ${sql}`;
+  }
 }
 
 class PgUserRepository implements IUserRepository {
@@ -48,7 +62,10 @@ class PgUserRepository implements IUserRepository {
 }
 
 class UserService implements IUserService {
-  constructor(private repo: IUserRepository, private logger: ILogger) {}
+  constructor(
+    private repo: IUserRepository,
+    private logger: ILogger,
+  ) {}
   getUser(id: string) {
     this.logger.log(`fetching user ${id}`);
     return this.repo.findById(id);
@@ -86,10 +103,7 @@ async function main() {
 
   // 3. Scope — per-request child container
   console.log('\n=== Scoped request ===');
-  const request = app.scope(
-    { requestId: () => crypto.randomUUID() },
-    { name: 'http-request' },
-  );
+  const request = app.scope({ requestId: () => crypto.randomUUID() }, { name: 'http-request' });
   console.log(`requestId: ${request.requestId}`);
   console.log(`same requestId: ${request.requestId}`); // singleton within scope
   console.log(`parent logger accessible: ${request.ILogger instanceof ConsoleLogger}`);

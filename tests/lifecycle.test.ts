@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { container } from '../src/index.js';
 
 describe('lifecycle', () => {
@@ -8,7 +8,9 @@ describe('lifecycle', () => {
     const c = container()
       .add('service', () => ({
         value: 42,
-        onInit() { initialized = true; },
+        onInit() {
+          initialized = true;
+        },
       }))
       .build();
 
@@ -22,13 +24,19 @@ describe('lifecycle', () => {
 
     const c = container()
       .add('db', () => ({
-        onDestroy() { destroyed.push('db'); },
+        onDestroy() {
+          destroyed.push('db');
+        },
       }))
       .add('cache', () => ({
-        onDestroy() { destroyed.push('cache'); },
+        onDestroy() {
+          destroyed.push('cache');
+        },
       }))
       .add('unused', () => ({
-        onDestroy() { destroyed.push('unused'); },
+        onDestroy() {
+          destroyed.push('unused');
+        },
       }))
       .build();
 
@@ -47,9 +55,21 @@ describe('lifecycle', () => {
     const order: string[] = [];
 
     const c = container()
-      .add('first', () => ({ onDestroy() { order.push('first'); } }))
-      .add('second', () => ({ onDestroy() { order.push('second'); } }))
-      .add('third', () => ({ onDestroy() { order.push('third'); } }))
+      .add('first', () => ({
+        onDestroy() {
+          order.push('first');
+        },
+      }))
+      .add('second', () => ({
+        onDestroy() {
+          order.push('second');
+        },
+      }))
+      .add('third', () => ({
+        onDestroy() {
+          order.push('third');
+        },
+      }))
       .build();
 
     c.first;
@@ -98,9 +118,18 @@ describe('lifecycle', () => {
     const resolved: string[] = [];
 
     const c = container()
-      .add('db', () => { resolved.push('db'); return 'db'; })
-      .add('cache', () => { resolved.push('cache'); return 'cache'; })
-      .add('logger', () => { resolved.push('logger'); return 'logger'; })
+      .add('db', () => {
+        resolved.push('db');
+        return 'db';
+      })
+      .add('cache', () => {
+        resolved.push('cache');
+        return 'cache';
+      })
+      .add('logger', () => {
+        resolved.push('logger');
+        return 'logger';
+      })
       .build();
 
     expect(resolved).toEqual([]);
@@ -112,8 +141,16 @@ describe('lifecycle', () => {
     const inited: string[] = [];
 
     const c = container()
-      .add('db', () => ({ onInit() { inited.push('db'); } }))
-      .add('cache', () => ({ onInit() { inited.push('cache'); } }))
+      .add('db', () => ({
+        onInit() {
+          inited.push('db');
+        },
+      }))
+      .add('cache', () => ({
+        onInit() {
+          inited.push('cache');
+        },
+      }))
       .build();
 
     await c.preload();

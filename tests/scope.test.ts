@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { container } from '../src/index.js';
 
 describe('scope', () => {
@@ -105,10 +105,7 @@ describe('scope', () => {
       .add('db', () => 'pg')
       .build();
 
-    const child = parent.scope(
-      { requestId: () => 'req-1' },
-      { name: 'request-123' },
-    );
+    const child = parent.scope({ requestId: () => 'req-1' }, { name: 'request-123' });
 
     const str = child.toString();
     expect(str).toContain('Scope(request-123)');
@@ -120,10 +117,7 @@ describe('scope', () => {
       .add('db', () => 'pg')
       .build();
 
-    const child = parent.scope(
-      { requestId: () => 'req-1' },
-      { name: 'my-scope' },
-    );
+    const child = parent.scope({ requestId: () => 'req-1' }, { name: 'my-scope' });
 
     const graph = child.inspect();
     expect(graph.name).toBe('my-scope');
@@ -147,7 +141,9 @@ describe('scope', () => {
 
     const parent = container()
       .add('parentService', () => ({
-        onDestroy: () => { parentDestroyed = true; },
+        onDestroy: () => {
+          parentDestroyed = true;
+        },
       }))
       .build();
 
@@ -156,7 +152,9 @@ describe('scope', () => {
 
     const child = parent.scope({
       childService: () => ({
-        onDestroy: () => { childDestroyed = true; },
+        onDestroy: () => {
+          childDestroyed = true;
+        },
       }),
     });
 

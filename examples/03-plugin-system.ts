@@ -77,9 +77,7 @@ const withJsonPlugin = withCsvPlugin.extend({
       c.logger.log('transforming to JSON...');
       c.metrics.inc('json.transformed');
       const [header, ...data] = rows;
-      return data.map((row) =>
-        Object.fromEntries(header.map((h, i) => [h, row[i]])),
-      );
+      return data.map((row) => Object.fromEntries(header.map((h, i) => [h, row[i]])));
     },
   }),
 });
@@ -108,17 +106,11 @@ async function main() {
   const csvSample = 'name,age,city\nAlice,30,Paris\nBob,25,Lyon';
 
   // Each job gets its own scope
-  const job1Scope = app.scope(
-    { jobName: () => 'import-users' },
-    { name: 'job-1' },
-  );
+  const job1Scope = app.scope({ jobName: () => 'import-users' }, { name: 'job-1' });
   const result1 = job1Scope.jobRunner.run(job1Scope.jobName, csvSample);
   console.log('job1 result:', result1);
 
-  const job2Scope = app.scope(
-    { jobName: () => 'import-products' },
-    { name: 'job-2' },
-  );
+  const job2Scope = app.scope({ jobName: () => 'import-products' }, { name: 'job-2' });
   const result2 = job2Scope.jobRunner.run(job2Scope.jobName, 'sku,price\nA1,10\nB2,20');
   console.log('job2 result:', result2);
 

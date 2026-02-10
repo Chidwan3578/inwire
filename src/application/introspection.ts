@@ -55,13 +55,11 @@ export class Introspection {
     const resolvedKeys = this.resolver.getResolvedKeys();
     const resolvedSet = new Set(resolvedKeys);
 
-    const warnings: ContainerWarning[] = this.resolver
-      .getWarnings()
-      .map((w) => ({
-        type: w.type,
-        message: w.message,
-        details: w.details,
-      }));
+    const warnings: ContainerWarning[] = this.resolver.getWarnings().map((w) => ({
+      type: w.type,
+      message: w.message,
+      details: w.details,
+    }));
 
     return {
       totalProviders: allKeys.length,

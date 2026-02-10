@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { container } from '../src/index.js';
 
 describe('container builder', () => {
@@ -134,9 +134,18 @@ describe('container builder', () => {
     const resolved: string[] = [];
 
     const c = container()
-      .add('a', () => { resolved.push('a'); return 'a'; })
-      .add('b', () => { resolved.push('b'); return 'b'; })
-      .add('c', (deps) => { resolved.push('c'); return deps.a; })
+      .add('a', () => {
+        resolved.push('a');
+        return 'a';
+      })
+      .add('b', () => {
+        resolved.push('b');
+        return 'b';
+      })
+      .add('c', (deps) => {
+        resolved.push('c');
+        return deps.a;
+      })
       .build();
 
     c.c;

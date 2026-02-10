@@ -1,25 +1,29 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  container,
   ContainerConfigError,
-  ReservedKeyError,
-  ProviderNotFoundError,
-  UndefinedReturnError,
-  FactoryError,
   ContainerError,
+  container,
+  FactoryError,
+  ProviderNotFoundError,
+  ReservedKeyError,
+  UndefinedReturnError,
 } from '../src/index.js';
 
 describe('errors', () => {
   describe('ReservedKeyError', () => {
     it('throws when using a reserved key in builder', () => {
       expect(() =>
-        container().add('inspect' as any, () => 'foo').build(),
+        container()
+          .add('inspect' as any, () => 'foo')
+          .build(),
       ).toThrow(ReservedKeyError);
     });
 
     it('includes rename suggestion', () => {
       try {
-        container().add('dispose' as any, () => 'foo').build();
+        container()
+          .add('dispose' as any, () => 'foo')
+          .build();
         expect.fail('should throw');
       } catch (e) {
         expect(e).toBeInstanceOf(ReservedKeyError);
@@ -32,7 +36,9 @@ describe('errors', () => {
     for (const key of ['inspect', 'describe', 'scope', 'dispose', 'health', 'extend', 'preload']) {
       it(`rejects reserved key '${key}'`, () => {
         expect(() =>
-          container().add(key as any, () => 'x').build(),
+          container()
+            .add(key as any, () => 'x')
+            .build(),
         ).toThrow(ReservedKeyError);
       });
     }
@@ -108,7 +114,9 @@ describe('errors', () => {
   describe('FactoryError', () => {
     it('wraps errors thrown by factories', () => {
       const c = container()
-        .add('failing', () => { throw new Error('Connection refused'); })
+        .add('failing', () => {
+          throw new Error('Connection refused');
+        })
         .build();
 
       expect(() => c.failing).toThrow(FactoryError);
@@ -117,7 +125,9 @@ describe('errors', () => {
     it('preserves original error message', () => {
       try {
         const c = container()
-          .add('failing', () => { throw new Error('Connection refused'); })
+          .add('failing', () => {
+            throw new Error('Connection refused');
+          })
           .build();
         c.failing;
         expect.fail('should throw');
@@ -132,7 +142,9 @@ describe('errors', () => {
 
     it('shows resolution chain for nested factory errors', () => {
       const c = container()
-        .add('db', () => { throw new Error('ECONNREFUSED'); })
+        .add('db', () => {
+          throw new Error('ECONNREFUSED');
+        })
         .add('repo', (c: any) => c.db)
         .add('service', (c: any) => c.repo)
         .build();
@@ -190,7 +202,9 @@ describe('errors', () => {
   describe('FactoryError details', () => {
     it('has key, chain, and originalError in details', () => {
       const c = container()
-        .add('failing', () => { throw new Error('boom'); })
+        .add('failing', () => {
+          throw new Error('boom');
+        })
         .build();
 
       try {
@@ -209,7 +223,9 @@ describe('errors', () => {
   describe('ReservedKeyError for toString', () => {
     it('rejects toString as a dependency key', () => {
       expect(() =>
-        container().add('toString' as any, () => 'x').build(),
+        container()
+          .add('toString' as any, () => 'x')
+          .build(),
       ).toThrow(ReservedKeyError);
     });
   });
@@ -217,7 +233,9 @@ describe('errors', () => {
   describe('all errors extend ContainerError', () => {
     it('ReservedKeyError is a ContainerError', () => {
       try {
-        container().add('inspect' as any, () => 'x').build();
+        container()
+          .add('inspect' as any, () => 'x')
+          .build();
       } catch (e) {
         expect(e).toBeInstanceOf(ContainerError);
       }
@@ -225,7 +243,9 @@ describe('errors', () => {
 
     it('ProviderNotFoundError is a ContainerError', () => {
       try {
-        const c = container().add('a', () => 1).build();
+        const c = container()
+          .add('a', () => 1)
+          .build();
         (c as any).missing;
       } catch (e) {
         expect(e).toBeInstanceOf(ContainerError);

@@ -81,14 +81,14 @@ export class ReservedKeyError extends ContainerError {
  */
 export class ProviderNotFoundError extends ContainerError {
   readonly hint: string;
-  readonly details: { key: string; chain: string[]; registered: string[]; suggestion: string | undefined };
+  readonly details: {
+    key: string;
+    chain: string[];
+    registered: string[];
+    suggestion: string | undefined;
+  };
 
-  constructor(
-    key: string,
-    chain: string[],
-    registered: string[],
-    suggestion?: string,
-  ) {
+  constructor(key: string, chain: string[], registered: string[], suggestion?: string) {
     const chainStr =
       chain.length > 0
         ? `\n\nResolution chain: ${[...chain, `${key} (not found)`].join(' -> ')}`
@@ -122,13 +122,11 @@ export class CircularDependencyError extends ContainerError {
 
   constructor(key: string, chain: string[]) {
     const cycle = [...chain, key].join(' -> ');
-    super(
-      `Circular dependency detected while resolving '${chain[0]}'.\n\nCycle: ${cycle}`,
-    );
+    super(`Circular dependency detected while resolving '${chain[0]}'.\n\nCycle: ${cycle}`);
     this.hint = [
       'To fix:',
       '  1. Extract shared logic into a new dependency both can use',
-      '  2. Restructure so one doesn\'t depend on the other',
+      "  2. Restructure so one doesn't depend on the other",
       '  3. Use a mediator/event pattern to decouple them',
     ].join('\n');
     this.details = { key, chain, cycle };
@@ -150,13 +148,9 @@ export class UndefinedReturnError extends ContainerError {
   readonly details: { key: string; chain: string[] };
 
   constructor(key: string, chain: string[]) {
-    const chainStr =
-      chain.length > 1
-        ? `\n\nResolution chain: ${chain.join(' -> ')}`
-        : '';
+    const chainStr = chain.length > 1 ? `\n\nResolution chain: ${chain.join(' -> ')}` : '';
     super(`Factory '${key}' returned undefined.${chainStr}`);
-    this.hint =
-      'Your factory function returned undefined. Did you forget a return statement?';
+    this.hint = 'Your factory function returned undefined. Did you forget a return statement?';
     this.details = { key, chain };
   }
 }
@@ -178,9 +172,7 @@ export class FactoryError extends ContainerError {
 
   constructor(key: string, chain: string[], originalError: unknown) {
     const origMessage =
-      originalError instanceof Error
-        ? originalError.message
-        : String(originalError);
+      originalError instanceof Error ? originalError.message : String(originalError);
     const chainStr =
       chain.length > 1
         ? `\n\nResolution chain: ${[...chain.slice(0, -1), `${key} (factory threw)`].join(' -> ')}`

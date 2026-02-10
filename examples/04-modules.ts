@@ -6,7 +6,7 @@
  * - module() for typed module composition on the container (post-build)
  * - Reusable modules as functions, c fully typed in every factory
  */
-import { container, transient, detectDuplicateKeys, ContainerBuilder } from '../src/index.js';
+import { type ContainerBuilder, container, detectDuplicateKeys, transient } from '../src/index.js';
 
 // ── Module definitions ──────────────────────────────────────────────────────
 // A module is a function (builder) => builder that chains .add() calls.
@@ -51,12 +51,12 @@ function authModule<T extends { logger: { log: (msg: string) => void } }>(
     }));
 }
 
-function userModule<T extends {
-  db: { query: (sql: string) => string };
-  logger: { log: (msg: string) => void };
-}>(
-  b: ContainerBuilder<Record<string, unknown>, T>,
-) {
+function userModule<
+  T extends {
+    db: { query: (sql: string) => string };
+    logger: { log: (msg: string) => void };
+  },
+>(b: ContainerBuilder<Record<string, unknown>, T>) {
   return b
     .add('userRepo', (c) => ({
       findById(id: string) {
@@ -98,14 +98,20 @@ console.log(`  cached: ${app.cache.get('user:42')}`);
 console.log('\n=== Inline module ===');
 const withMetrics = container()
   .add('logger', () => ({ log: (msg: string) => console.log(`  ${msg}`) }))
-  .addModule((b) => b
-    .add('counter', () => ({ value: 0, inc() { this.value++; } }))
-    .add('metrics', (c) => ({
-      record() {
-        c.counter.inc();
-        c.logger.log(`[metrics] count=${c.counter.value}`);
-      },
-    })),
+  .addModule((b) =>
+    b
+      .add('counter', () => ({
+        value: 0,
+        inc() {
+          this.value++;
+        },
+      }))
+      .add('metrics', (c) => ({
+        record() {
+          c.counter.inc();
+          c.logger.log(`[metrics] count=${c.counter.value}`);
+        },
+      })),
   )
   .build();
 
@@ -124,16 +130,22 @@ const core = container()
   .build();
 
 // db module — post-build, c is typed as core's deps
-const withDb = core.module((b) => b
-  .add('db', (c) => ({
-    query: (sql: string) => { c.logger.log(`[db] ${sql}`); return `result: ${sql}`; },
+const withDb = core.module((b) =>
+  b.add('db', (c) => ({
+    query: (sql: string) => {
+      c.logger.log(`[db] ${sql}`);
+      return `result: ${sql}`;
+    },
   })),
 );
 
 // user module — chained, c accumulates previous module's deps
-const full = withDb.module((b) => b
-  .add('userService', (c) => ({
-    getUser: (id: string) => { c.logger.log(`[user] getUser(${id})`); return c.db.query(`SELECT * FROM users WHERE id='${id}'`); },
+const full = withDb.module((b) =>
+  b.add('userService', (c) => ({
+    getUser: (id: string) => {
+      c.logger.log(`[user] getUser(${id})`);
+      return c.db.query(`SELECT * FROM users WHERE id='${id}'`);
+    },
   })),
 );
 

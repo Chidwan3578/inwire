@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { Validator, detectDuplicateKeys } from '../src/domain/validation.js';
+import { describe, expect, it } from 'vitest';
+import { detectDuplicateKeys, Validator } from '../src/domain/validation.js';
 
 describe('Validator', () => {
   const validator = new Validator();
@@ -15,53 +15,39 @@ describe('Validator', () => {
     });
 
     it('throws for string values', () => {
-      expect(() =>
-        validator.validateConfig({ key: 'value' }),
-      ).toThrow();
+      expect(() => validator.validateConfig({ key: 'value' })).toThrow();
     });
 
     it('throws for number values', () => {
-      expect(() =>
-        validator.validateConfig({ port: 3000 }),
-      ).toThrow();
+      expect(() => validator.validateConfig({ port: 3000 })).toThrow();
     });
 
     it('throws for object values', () => {
-      expect(() =>
-        validator.validateConfig({ config: { host: 'localhost' } }),
-      ).toThrow();
+      expect(() => validator.validateConfig({ config: { host: 'localhost' } })).toThrow();
     });
 
     it('throws for null values', () => {
-      expect(() =>
-        validator.validateConfig({ nothing: null }),
-      ).toThrow();
+      expect(() => validator.validateConfig({ nothing: null })).toThrow();
     });
 
     it('throws for reserved keys', () => {
-      expect(() =>
-        validator.validateConfig({ inspect: () => 'x' }),
-      ).toThrow();
+      expect(() => validator.validateConfig({ inspect: () => 'x' })).toThrow();
     });
   });
 
   describe('suggestKey (fuzzy matching)', () => {
     it('suggests close matches', () => {
-      expect(
-        validator.suggestKey('userRepo', ['userRepository', 'logger', 'db']),
-      ).toBe('userRepository');
+      expect(validator.suggestKey('userRepo', ['userRepository', 'logger', 'db'])).toBe(
+        'userRepository',
+      );
     });
 
     it('suggests exact substring matches', () => {
-      expect(
-        validator.suggestKey('loger', ['logger', 'db', 'cache']),
-      ).toBe('logger');
+      expect(validator.suggestKey('loger', ['logger', 'db', 'cache'])).toBe('logger');
     });
 
     it('returns undefined for completely different keys', () => {
-      expect(
-        validator.suggestKey('xyz', ['logger', 'db', 'cache']),
-      ).toBeUndefined();
+      expect(validator.suggestKey('xyz', ['logger', 'db', 'cache'])).toBeUndefined();
     });
 
     it('handles empty registered list', () => {
@@ -69,9 +55,9 @@ describe('Validator', () => {
     });
 
     it('picks the closest match', () => {
-      expect(
-        validator.suggestKey('usrService', ['userService', 'authService', 'logService']),
-      ).toBe('userService');
+      expect(validator.suggestKey('usrService', ['userService', 'authService', 'logService'])).toBe(
+        'userService',
+      );
     });
   });
   describe('fuzzy matching 50% similarity boundary', () => {

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { container, CircularDependencyError } from '../src/index.js';
+import { describe, expect, it } from 'vitest';
+import { CircularDependencyError, container } from '../src/index.js';
 
 describe('circular dependency detection', () => {
   it('detects direct circular dependency (A -> B -> A)', () => {

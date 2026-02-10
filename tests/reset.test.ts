@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { container } from '../src/index.js';
 
 describe('reset', () => {
@@ -54,7 +54,9 @@ describe('reset', () => {
     const c = container()
       .add('service', () => ({
         value: 'svc',
-        onInit() { initCount++; },
+        onInit() {
+          initCount++;
+        },
       }))
       .build();
 

@@ -1,5 +1,14 @@
-import { describe, it, expect, expectTypeOf } from 'vitest';
-import { container, transient, ContainerConfigError, ProviderNotFoundError, CircularDependencyError, FactoryError, UndefinedReturnError, ReservedKeyError } from '../src/index.js';
+import { describe, expect, expectTypeOf, it } from 'vitest';
+import {
+  CircularDependencyError,
+  ContainerConfigError,
+  container,
+  FactoryError,
+  ProviderNotFoundError,
+  ReservedKeyError,
+  transient,
+  UndefinedReturnError,
+} from '../src/index.js';
 
 describe('TypeScript type inference', () => {
   it('infers correct types for simple factories', () => {
@@ -30,8 +39,12 @@ describe('TypeScript type inference', () => {
     }
 
     class PgRepo implements Repository {
-      findById(id: string) { return `pg:${id}`; }
-      pgSpecific() { return 'pg'; }
+      findById(id: string) {
+        return `pg:${id}`;
+      }
+      pgSpecific() {
+        return 'pg';
+      }
     }
 
     const c = container()
@@ -200,9 +213,7 @@ describe('Builder type safety', () => {
   });
 
   it('reserved key in add() throws runtime ReservedKeyError', () => {
-    expect(() =>
-      container().add('scope' as any, () => 'x'),
-    ).toThrow(ReservedKeyError);
+    expect(() => container().add('scope' as any, () => 'x')).toThrow(ReservedKeyError);
   });
 
   it('c in scope/extend is typed as the parent', () => {

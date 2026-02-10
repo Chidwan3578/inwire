@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { container, transient } from '../src/index.js';
 
 describe('introspection', () => {
@@ -70,7 +70,9 @@ describe('introspection', () => {
     });
 
     it('returns default info for unknown key', () => {
-      const c = container().add('a', () => 1).build();
+      const c = container()
+        .add('a', () => 1)
+        .build();
       const info = c.describe('unknown' as any);
       expect(info.resolved).toBe(false);
       expect(info.deps).toEqual([]);

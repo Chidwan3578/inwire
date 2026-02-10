@@ -4,8 +4,8 @@ Type-safe dependency injection for TypeScript. Builder pattern, full inference, 
 
 [![NPM Version](https://img.shields.io/npm/v/inwire)](https://www.npmjs.com/package/inwire)
 [![CI](https://img.shields.io/github/actions/workflow/status/axelhamil/inwire/ci.yml)](https://github.com/axelhamil/inwire/actions)
-[![Bundle size](https://img.shields.io/bundlephobia/minzip/inwire)](https://bundlephobia.com/package/inwire)
-[![NPM Downloads](https://img.shields.io/npm/dm/inwire)](https://www.npmjs.com/package/inwire)
+[![Bundle size](https://deno.bundlejs.com/badge?q=inwire&treeshake=[*])](https://bundlejs.com/?q=inwire&treeshake=[*])
+[![NPM Downloads](https://img.shields.io/npm/dm/inwire)](https://npmtrends.com/inwire)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/npm/l/inwire)](https://github.com/axelhamil/inwire/blob/main/LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/inwire)

@@ -1,5 +1,3 @@
-import type { DepsDefinition, Factory } from '../domain/types.js';
-import { hasOnInit } from '../domain/lifecycle.js';
 import {
   CircularDependencyError,
   FactoryError,
@@ -7,6 +5,8 @@ import {
   ScopeMismatchWarning,
   UndefinedReturnError,
 } from '../domain/errors.js';
+import { hasOnInit } from '../domain/lifecycle.js';
+import type { Factory } from '../domain/types.js';
 import { Validator } from '../domain/validation.js';
 import { isTransient } from './transient.js';
 
@@ -82,7 +82,7 @@ export class Resolver {
     try {
       // Create a tracking proxy to record which deps this factory accesses
       const deps: string[] = [];
-      const trackingProxy = this.createTrackingProxy(key, deps, currentChain);
+      const trackingProxy = this.createTrackingProxy(deps, currentChain);
 
       const instance = factory(trackingProxy);
 
@@ -175,11 +175,7 @@ export class Resolver {
    * Creates a Proxy that records which keys a factory accesses.
    * This builds the dependency graph automatically.
    */
-  private createTrackingProxy(
-    factoryKey: string,
-    deps: string[],
-    chain: string[],
-  ): unknown {
+  private createTrackingProxy(deps: string[], chain: string[]): unknown {
     return new Proxy(
       {},
       {

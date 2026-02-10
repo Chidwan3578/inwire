@@ -78,8 +78,8 @@ export interface ScopeOptions {
  * c.inspect(); // ContainerGraph
  * ```
  */
-export type Container<T extends Record<string, unknown> = Record<string, unknown>> =
-  T & IContainer<T>;
+export type Container<T extends Record<string, unknown> = Record<string, unknown>> = T &
+  IContainer<T>;
 
 /**
  * Container methods interface. Defines the API available on every container.
@@ -100,7 +100,9 @@ export interface IContainer<T extends Record<string, unknown> = Record<string, u
   scope<E extends Record<string, (c: T) => unknown>>(
     extra: E,
     options?: ScopeOptions,
-  ): Container<Omit<T, keyof { [K in keyof E]: ReturnType<E[K]> }> & { [K in keyof E]: ReturnType<E[K]> }>;
+  ): Container<
+    Omit<T, keyof { [K in keyof E]: ReturnType<E[K]> }> & { [K in keyof E]: ReturnType<E[K]> }
+  >;
 
   /**
    * Returns a new container with additional dependencies.
@@ -115,7 +117,9 @@ export interface IContainer<T extends Record<string, unknown> = Record<string, u
    */
   extend<E extends Record<string, (c: T) => unknown>>(
     extra: E,
-  ): Container<Omit<T, keyof { [K in keyof E]: ReturnType<E[K]> }> & { [K in keyof E]: ReturnType<E[K]> }>;
+  ): Container<
+    Omit<T, keyof { [K in keyof E]: ReturnType<E[K]> }> & { [K in keyof E]: ReturnType<E[K]> }
+  >;
 
   /**
    * Applies a module post-build using the builder pattern.
@@ -131,7 +135,9 @@ export interface IContainer<T extends Record<string, unknown> = Record<string, u
    * ```
    */
   module<TNew extends Record<string, unknown>>(
-    fn: (builder: ContainerBuilder<Record<string, unknown>, T>) => ContainerBuilder<Record<string, unknown>, TNew>,
+    fn: (
+      builder: ContainerBuilder<Record<string, unknown>, T>,
+    ) => ContainerBuilder<Record<string, unknown>, TNew>,
   ): Container<TNew>;
 
   /**

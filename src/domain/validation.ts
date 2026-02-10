@@ -1,6 +1,6 @@
+import { ContainerConfigError, ReservedKeyError } from './errors.js';
 import type { IValidator } from './types.js';
 import { RESERVED_KEYS } from './types.js';
-import { ContainerConfigError, ReservedKeyError } from './errors.js';
 
 /**
  * Validates container configuration and provides fuzzy key matching.
@@ -63,9 +63,7 @@ export class Validator implements IValidator {
  * Detects duplicate keys across multiple modules (spread objects).
  * Returns an array of keys that appear in more than one source.
  */
-export function detectDuplicateKeys(
-  ...modules: Record<string, unknown>[]
-): string[] {
+export function detectDuplicateKeys(...modules: Record<string, unknown>[]): string[] {
   const seen = new Map<string, number>();
   const duplicates: string[] = [];
 

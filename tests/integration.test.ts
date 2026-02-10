@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { container, transient, detectDuplicateKeys } from '../src/index.js';
+import { describe, expect, it } from 'vitest';
+import { container, detectDuplicateKeys, transient } from '../src/index.js';
 
 // === Domain interfaces ===
 interface UserRepository {
@@ -71,7 +71,9 @@ describe('integration: DDD scenario', () => {
 
   it('overrides for testing', () => {
     class StubUserRepo implements UserRepository {
-      findById() { return { id: 'test', name: 'Test User' }; }
+      findById() {
+        return { id: 'test', name: 'Test User' };
+      }
     }
 
     const c = container()
@@ -197,13 +199,21 @@ describe('integration: DDD scenario', () => {
     const c = container()
       .add('db', () => ({
         query: (q: string) => `result:${q}`,
-        onInit() { events.push('db:init'); },
-        onDestroy() { events.push('db:destroy'); },
+        onInit() {
+          events.push('db:init');
+        },
+        onDestroy() {
+          events.push('db:destroy');
+        },
       }))
       .add('cache', () => ({
         get: (k: string) => k,
-        onInit() { events.push('cache:init'); },
-        onDestroy() { events.push('cache:destroy'); },
+        onInit() {
+          events.push('cache:init');
+        },
+        onDestroy() {
+          events.push('cache:destroy');
+        },
       }))
       .build();
 

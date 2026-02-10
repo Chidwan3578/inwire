@@ -1,5 +1,5 @@
-import type { Container, Factory, ScopeOptions } from '../domain/types.js';
 import { hasOnDestroy } from '../domain/lifecycle.js';
+import type { Container, Factory, ScopeOptions } from '../domain/types.js';
 import { Validator } from '../domain/validation.js';
 import { Resolver } from '../infrastructure/resolver.js';
 import { Introspection } from './introspection.js';
@@ -118,7 +118,7 @@ export function buildContainerProxy(
         ) {
           return {
             configurable: true,
-            enumerable: key in methods ? false : true,
+            enumerable: !(key in methods),
             writable: false,
           };
         }

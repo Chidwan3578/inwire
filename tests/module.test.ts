@@ -1,15 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { container, transient } from '../src/index.js';
 
 describe('module (post-build)', () => {
   it('applies a module to add dependencies post-build', () => {
-    const base = container()
-      .add('config', { host: 'localhost', port: 5432 })
-      .build();
+    const base = container().add('config', { host: 'localhost', port: 5432 }).build();
 
-    const withDb = base.module((b) => b
-      .add('db', (c) => `pg://${c.config.host}:${c.config.port}`),
-    );
+    const withDb = base.module((b) => b.add('db', (c) => `pg://${c.config.host}:${c.config.port}`));
 
     expect(withDb.db).toBe('pg://localhost:5432');
     expect(withDb.config).toEqual({ host: 'localhost', port: 5432 });
@@ -20,10 +16,7 @@ describe('module (post-build)', () => {
       .add('a', () => 1)
       .build();
 
-    const extended = base.module((b) => b
-      .add('b', (c) => c.a + 1)
-      .add('c', (c) => c.b + 1),
-    );
+    const extended = base.module((b) => b.add('b', (c) => c.a + 1).add('c', (c) => c.b + 1));
 
     expect(extended.a).toBe(1);
     expect(extended.b).toBe(2);
@@ -76,14 +69,10 @@ describe('module (post-build)', () => {
   });
 
   it('works after scope()', () => {
-    const base = container()
-      .add('config', { env: 'test' })
-      .build();
+    const base = container().add('config', { env: 'test' }).build();
 
     const scoped = base.scope({ requestId: () => 'req-123' });
-    const withExtra = scoped.module((b) => b
-      .add('service', (c) => `svc-${c.requestId}`),
-    );
+    const withExtra = scoped.module((b) => b.add('service', (c) => `svc-${c.requestId}`));
 
     // module() delegates to extend(), which flattens scope-level factories only
     expect(withExtra.service).toBe('svc-req-123');
@@ -103,13 +92,9 @@ describe('module (post-build)', () => {
 
   it('supports transient deps via addTransient', () => {
     let counter = 0;
-    const base = container()
-      .add('config', { env: 'test' })
-      .build();
+    const base = container().add('config', { env: 'test' }).build();
 
-    const extended = base.module((b) => b
-      .addTransient('id', () => ++counter),
-    );
+    const extended = base.module((b) => b.addTransient('id', () => ++counter));
 
     expect(extended.id).toBe(1);
     expect(extended.id).toBe(2);

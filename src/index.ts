@@ -18,9 +18,20 @@
  */
 
 // Core API
-export { container, ContainerBuilder } from './application/container-builder.js';
-export { transient } from './infrastructure/transient.js';
-
+export { ContainerBuilder, container } from './application/container-builder.js';
+// Errors (classes, so exported as values)
+export {
+  CircularDependencyError,
+  ContainerConfigError,
+  ContainerError,
+  FactoryError,
+  ProviderNotFoundError,
+  ReservedKeyError,
+  ScopeMismatchWarning,
+  UndefinedReturnError,
+} from './domain/errors.js';
+// Lifecycle interfaces
+export type { OnDestroy, OnInit } from './domain/lifecycle.js';
 // Types
 export type {
   Container,
@@ -31,21 +42,6 @@ export type {
   ProviderInfo,
   ScopeOptions,
 } from './domain/types.js';
-
-// Lifecycle interfaces
-export type { OnInit, OnDestroy } from './domain/lifecycle.js';
-
-// Errors (classes, so exported as values)
-export {
-  ContainerError,
-  ContainerConfigError,
-  ReservedKeyError,
-  ProviderNotFoundError,
-  CircularDependencyError,
-  UndefinedReturnError,
-  FactoryError,
-  ScopeMismatchWarning,
-} from './domain/errors.js';
-
 // Validation utilities
 export { detectDuplicateKeys } from './domain/validation.js';
+export { transient } from './infrastructure/transient.js';

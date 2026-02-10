@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/axelhamil/inwire/compare/v1.0.2...v1.0.3) (2026-02-10)
+
+
+### Bug Fixes
+
+* **types:** audit fixes — override typing, dead code, redundant casts, type tests ([137d102](https://github.com/axelhamil/inwire/commit/137d1024f4f846de7fa4b1696f4a8614c2148770))
+
 ## [1.0.2](https://github.com/axelhamil/inwire/compare/v1.0.1...v1.0.2) (2026-02-10)
 
 

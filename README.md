@@ -358,7 +358,8 @@ Run yourself: `npm run bench` / `npm run bench:compare` (Node.js v24, V8 13.6).
 | Lifecycle (onInit/onDestroy) | Yes | No | dispose only | No |
 | Decorators required | No | No | No | Yes |
 | Runtime deps | 0 | 0 | 1 | 7 |
-| Bundle (unpacked) | 8.8 KB | 43 KB | 320 KB | 1,466 KB |
+| Runtime JS | 8.8 KB | 43 KB | 320 KB | 1,466 KB (total deps) |
+| npm install size | 42.3 KB | 42.6 KB | 320 KB+ | 1,466 KB |
 
 ### Runtime compatibility
 
@@ -387,7 +388,7 @@ Pure ES2022. No decorators, no `reflect-metadata`, no compiler plugins.
 | Introspection | Built-in JSON graph | `.registrations` | `isRegistered()` | No | DevTools |
 | Smart errors | 7 types + hints | Resolution chain | Generic | Generic | Generic |
 | Warm singleton | ~22 ns | N/A | N/A | ~580 ns | N/A |
-| Bundle (unpacked) | 8.8 KB | 320 KB | 149 KB (+reflect-metadata) | 1,466 KB | Framework |
+| Runtime JS | 8.8 KB (3.2 KB gzip) | 320 KB | 149 KB (+reflect-metadata) | 1,466 KB | Framework |
 | Runtime deps | 0 | 1 (fast-glob) | 1 (reflect-metadata) | 7 (+reflect-metadata) | Many |
 
 ## Architecture

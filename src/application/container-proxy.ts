@@ -13,11 +13,11 @@ const validator = new Validator();
  */
 export function buildContainerProxy(
   resolver: Resolver,
-  builderFactory?: () => { _toRecord(): Record<string, (c: any) => any> },
-): Container<any> {
+  builderFactory?: () => { _toRecord(): Record<string, (c: unknown) => unknown> },
+): Container<Record<string, unknown>> {
   const introspection = new Introspection(resolver);
   const methods = {
-    scope: (extra: Record<string, (c: any) => any>, options?: ScopeOptions) => {
+    scope: (extra: Record<string, (c: unknown) => unknown>, options?: ScopeOptions) => {
       const childFactories = new Map<string, Factory>();
       for (const [key, factory] of Object.entries(extra)) {
         childFactories.set(key, factory as Factory);
@@ -26,7 +26,7 @@ export function buildContainerProxy(
       return buildContainerProxy(childResolver, builderFactory);
     },
 
-    extend: (extra: Record<string, (c: any) => any>) => {
+    extend: (extra: Record<string, (c: unknown) => unknown>) => {
       validator.validateConfig(extra);
       const merged = new Map(resolver.getFactories());
       for (const [key, factory] of Object.entries(extra)) {
@@ -36,12 +36,11 @@ export function buildContainerProxy(
       return buildContainerProxy(newResolver, builderFactory);
     },
 
-    module: (fn: (b: any) => any) => {
+    module: (fn: (b: unknown) => unknown) => {
       if (!builderFactory) throw new Error('module() is not available');
       const builder = builderFactory();
-      const result = fn(builder);
-      const record = result._toRecord();
-      return methods.extend(record);
+      const result = fn(builder) as { _toRecord(): Record<string, (c: unknown) => unknown> };
+      return methods.extend(result._toRecord());
     },
 
     preload: async (...keys: string[]) => {
@@ -128,5 +127,5 @@ export function buildContainerProxy(
     },
   );
 
-  return proxy as Container<any>;
+  return proxy as Container<Record<string, unknown>>;
 }

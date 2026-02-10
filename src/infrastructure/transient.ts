@@ -10,7 +10,7 @@ export const TRANSIENT_MARKER = Symbol.for('inwire:transient');
  * A factory wrapper that marks it as transient.
  */
 export interface TransientFactory<T = unknown> {
-  (container: any): T;
+  (container: unknown): T;
   [TRANSIENT_MARKER]: true;
 }
 
@@ -32,7 +32,7 @@ export interface TransientFactory<T = unknown> {
  * ```
  */
 export function transient<T>(factory: Factory<T>): Factory<T> {
-  const wrapper = ((container: any) => factory(container)) as TransientFactory<T>;
+  const wrapper = ((container: unknown) => factory(container)) as TransientFactory<T>;
   wrapper[TRANSIENT_MARKER] = true;
   return wrapper;
 }

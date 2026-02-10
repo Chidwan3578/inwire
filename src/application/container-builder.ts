@@ -16,8 +16,8 @@ import { buildContainerProxy } from "./container-proxy.js";
  * receive a fully-typed `c` parameter with all previously registered deps.
  */
 export class ContainerBuilder<
-  TContract extends Record<string, any> = Record<string, any>,
-  TBuilt extends Record<string, any> = {},
+  TContract extends Record<string, unknown> = Record<string, unknown>,
+  TBuilt extends Record<string, unknown> = {},
 > {
   private readonly factories = new Map<string, Factory>();
   private readonly transientKeys = new Set<string>();
@@ -66,7 +66,7 @@ export class ContainerBuilder<
    * Applies a module — a function that chains `.add()` calls on this builder.
    * `c` in the module's factories is fully typed with all previously registered deps.
    */
-  addModule<TNew extends Record<string, any>>(
+  addModule<TNew extends Record<string, unknown>>(
     module: (
       builder: ContainerBuilder<TContract, TBuilt>,
     ) => ContainerBuilder<TContract, TNew>,
@@ -119,7 +119,7 @@ export class ContainerBuilder<
  * ```
  */
 export function container<
-  T extends Record<string, any> = Record<string, any>,
+  T extends Record<string, unknown> = Record<string, unknown>,
 >(): ContainerBuilder<T> {
   return new ContainerBuilder<T>();
 }

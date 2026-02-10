@@ -8,7 +8,7 @@ import type { ContainerBuilder } from '../application/container-builder.js';
  * const factory: Factory<MyService> = (c) => new MyService(c.db);
  * ```
  */
-export type Factory<T = unknown> = (container: any) => T;
+export type Factory<T = unknown> = (container: unknown) => T;
 
 /**
  * An object of factory functions — the definition of a container.
@@ -97,7 +97,7 @@ export interface IContainer<T extends Record<string, unknown> = Record<string, u
    * });
    * ```
    */
-  scope<E extends Record<string, (c: T) => any>>(
+  scope<E extends Record<string, (c: T) => unknown>>(
     extra: E,
     options?: ScopeOptions,
   ): Container<Omit<T, keyof { [K in keyof E]: ReturnType<E[K]> }> & { [K in keyof E]: ReturnType<E[K]> }>;
@@ -113,7 +113,7 @@ export interface IContainer<T extends Record<string, unknown> = Record<string, u
    * });
    * ```
    */
-  extend<E extends Record<string, (c: T) => any>>(
+  extend<E extends Record<string, (c: T) => unknown>>(
     extra: E,
   ): Container<Omit<T, keyof { [K in keyof E]: ReturnType<E[K]> }> & { [K in keyof E]: ReturnType<E[K]> }>;
 
@@ -130,8 +130,8 @@ export interface IContainer<T extends Record<string, unknown> = Record<string, u
    * );
    * ```
    */
-  module<TNew extends Record<string, any>>(
-    fn: (builder: ContainerBuilder<Record<string, any>, T>) => ContainerBuilder<Record<string, any>, TNew>,
+  module<TNew extends Record<string, unknown>>(
+    fn: (builder: ContainerBuilder<Record<string, unknown>, T>) => ContainerBuilder<Record<string, unknown>, TNew>,
   ): Container<TNew>;
 
   /**

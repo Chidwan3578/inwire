@@ -13,7 +13,7 @@ import { container, transient, detectDuplicateKeys, ContainerBuilder } from '../
 // c in every factory is fully typed — same as inline .add().
 
 function dbModule<T extends { config: { dbUrl: string }; logger: { log: (msg: string) => void } }>(
-  b: ContainerBuilder<Record<string, any>, T>,
+  b: ContainerBuilder<Record<string, unknown>, T>,
 ) {
   return b
     .add('db', (c) => ({
@@ -35,7 +35,7 @@ function dbModule<T extends { config: { dbUrl: string }; logger: { log: (msg: st
 }
 
 function authModule<T extends { logger: { log: (msg: string) => void } }>(
-  b: ContainerBuilder<Record<string, any>, T>,
+  b: ContainerBuilder<Record<string, unknown>, T>,
 ) {
   return b
     .add('tokenService', () => ({
@@ -55,7 +55,7 @@ function userModule<T extends {
   db: { query: (sql: string) => string };
   logger: { log: (msg: string) => void };
 }>(
-  b: ContainerBuilder<Record<string, any>, T>,
+  b: ContainerBuilder<Record<string, unknown>, T>,
 ) {
   return b
     .add('userRepo', (c) => ({

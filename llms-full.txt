@@ -1,7 +1,7 @@
 # inwire — Complete API Reference
 
 > Type-safe dependency injection for TypeScript. Builder pattern, full inference, no decorators, no tokens.
-> Proxy-based lazy singleton resolution. ~4.7KB gzipped, 0 runtime deps.
+> Proxy-based lazy singleton resolution. ~3.2KB gzipped, 0 runtime deps.
 
 Install: `npm i inwire`
 License: MIT
@@ -23,7 +23,7 @@ When you access a property on the built container, the Proxy intercepts it and d
 ## container()
 
 ```typescript
-function container<T extends Record<string, any> = Record<string, any>>(): ContainerBuilder<T>
+function container<T extends Record<string, unknown> = Record<string, unknown>>(): ContainerBuilder<T>
 ```
 
 Creates a new `ContainerBuilder`. Two modes depending on the generic parameter:
@@ -114,7 +114,7 @@ app.requestId === app.requestId;   // false — new every time
 ### .addModule(fn)
 
 ```typescript
-addModule<TNew extends Record<string, any>>(
+addModule<TNew extends Record<string, unknown>>(
   module: (builder: ContainerBuilder<TContract, TBuilt>) => ContainerBuilder<TContract, TNew>,
 ): ContainerBuilder<TContract, TNew>
 ```
@@ -125,7 +125,7 @@ Applies a module — a function that chains `.add()` calls on the builder. `c` i
 import { container, ContainerBuilder } from 'inwire';
 
 function dbModule<T extends { config: { dbUrl: string } }>(
-  b: ContainerBuilder<Record<string, any>, T>,
+  b: ContainerBuilder<Record<string, unknown>, T>,
 ) {
   return b
     .add('db', (c) => new Database(c.config.dbUrl))
@@ -149,7 +149,7 @@ Builds and returns the container. Creates the Resolver and Proxy.
 ## transient(factory)
 
 ```typescript
-function transient<T>(factory: (container: any) => T): (container: any) => T
+function transient<T>(factory: (container: unknown) => T): (container: unknown) => T
 ```
 
 Marks a factory as transient for use with `scope()` and `extend()`. Internally attaches a `Symbol.for('inwire:transient')` marker.
@@ -173,7 +173,7 @@ Use `addTransient()` on the builder for transient deps at build time. Use `trans
 ## container.scope(extra, options?)
 
 ```typescript
-scope<E extends Record<string, (c: T) => any>>(
+scope<E extends Record<string, (c: T) => unknown>>(
   extra: E,
   options?: ScopeOptions,
 ): Container<T & { [K in keyof E]: ReturnType<E[K]> }>
@@ -231,7 +231,7 @@ const child = parent.scope({
 ## container.extend(extra)
 
 ```typescript
-extend<E extends Record<string, (c: T) => any>>(
+extend<E extends Record<string, (c: T) => unknown>>(
   extra: E,
 ): Container<T & { [K in keyof E]: ReturnType<E[K]> }>
 ```
@@ -260,8 +260,8 @@ extended.db;     // new dependency
 ## container.module(fn)
 
 ```typescript
-module<TNew extends Record<string, any>>(
-  fn: (builder: ContainerBuilder<Record<string, any>, T>) => ContainerBuilder<Record<string, any>, TNew>,
+module<TNew extends Record<string, unknown>>(
+  fn: (builder: ContainerBuilder<Record<string, unknown>, T>) => ContainerBuilder<Record<string, unknown>, TNew>,
 ): Container<TNew>
 ```
 
@@ -519,13 +519,13 @@ test.userService; // uses mocked deps
 ## Type Utilities
 
 ```typescript
-type Container<T extends Record<string, any> = Record<string, any>> = T & IContainer<T>;
+type Container<T extends Record<string, unknown> = Record<string, unknown>> = T & IContainer<T>;
 interface ScopeOptions { name?: string }
 ```
 
 Internal types (not exported from barrel):
 ```typescript
-type Factory<T = any> = (container: any) => T;
+type Factory<T = unknown> = (container: unknown) => T;
 type DepsDefinition = Record<string, Factory>;
 type ResolvedDeps<T extends DepsDefinition> = { readonly [K in keyof T]: ReturnType<T[K]> };
 ```

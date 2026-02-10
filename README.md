@@ -326,54 +326,43 @@ detectDuplicateKeys(authModule, userModule);
 
 ## Performance
 
-All benchmarks: Node.js v24, V8 13.6. Same scenario: 5 deps with chain (config → logger → db → userRepo → userService). Run: `npm run bench` / `npm run bench:compare`.
+Performance is not the differentiator — **every lightweight DI container lands in the same ~20 ns range for cached singletons**. The differentiator is what you get on top of that.
 
-### vs. other DI containers
+### Head-to-head (same scenario: 5-dep chain)
 
-| Library | warm singleton | http handler (3 deps) | cold resolve | build |
+| Library | warm singleton | http handler (3 deps) | build |
+|---|---|---|---|
+| **inwire** | **~22 ns** | **~71 ns** | ~1,840 ns |
+| ioctopus | ~20 ns | ~77 ns | ~530 ns |
+| awilix | ~25 ns | ~74 ns | ~5,820 ns |
+| inversify | ~580 ns | ~1,020 ns | ~10,280 ns |
+
+On the hot path, inwire, ioctopus, and awilix are within measurement noise. Inversify is the outlier at 25x slower — it pays for its planning tree on every resolve.
+
+Build is a cold path (runs once at startup). ioctopus is fastest because it stores raw entries with no validation. inwire sits in the middle — the Proxy setup, validation, and tracking cost ~1.5 μs extra, but that's 1.5 μs you pay once.
+
+**What ~22 ns means in practice:** DI overhead for a full HTTP handler (3 deps) is ~71 ns — faster than `JSON.parse` on a 40-byte string (~130 ns). It's not a factor.
+
+Run yourself: `npm run bench` / `npm run bench:compare` (Node.js v24, V8 13.6).
+
+### What you get for the same performance
+
+| | inwire | ioctopus | awilix | inversify |
 |---|---|---|---|---|
-| **inwire** | **~22 ns** | **~71 ns** | ~3,200 ns | ~1,840 ns |
-| ioctopus | ~20 ns | ~77 ns | ~1,070 ns | ~530 ns |
-| awilix | ~25 ns | ~74 ns | ~6,240 ns | ~5,820 ns |
-| inversify | ~580 ns | ~1,020 ns | ~11,740 ns | ~10,280 ns |
-
-**Hot path** (warm singleton, HTTP handler): inwire, ioctopus, and awilix are within measurement noise (~20-25 ns). Inversify is **25x slower** on cached singletons.
-
-**Cold path** (build, first resolve): ioctopus is fastest because it stores raw entries. inwire is in the middle — the Proxy setup + validation + tracking adds ~1.5 μs over a raw Map, but runs only once at startup.
-
-### inwire detailed
-
-| Operation | ns/op | ops/sec |
-|---|---|---|
-| Warm singleton (cached) | **~22 ns** | 45M |
-| HTTP handler (3 warm singletons) | **~71 ns** | 14M |
-| Transient resolve | ~255 ns | 3.9M |
-| `describe(key)` | ~70 ns | 14M |
-| `health()` | ~90 ns | 11M |
-| `inspect()` | ~315 ns | 3.1M |
-| Build container (3 deps) | ~1,560 ns | 640K |
-| Build container (10 deps) | ~1,900 ns | 520K |
-| Cold resolve (5-dep chain) | ~3,000 ns | 330K |
-| Scope creation | ~1,460 ns | 680K |
-| Scope + resolve | ~1,900 ns | 515K |
-| Extend | ~1,810 ns | 550K |
-| `reset()` + re-resolve | ~530 ns | 1.9M |
-
-### Overhead context
-
-| Reference | ns/op |
-|---|---|
-| Plain object property access | ~1 ns |
-| `Map.get(key)` | ~5 ns |
-| Raw `Proxy` + `Map.get` | ~15 ns |
-| **inwire warm singleton** | **~22 ns** |
-| `JSON.parse('{"id":1,"name":"test"}')` | ~130 ns |
-
-DI overhead per request (~71 ns for 3 deps) is **faster than parsing a single tiny JSON object**. Singleton resolution adds ~7 ns over a raw Proxy — one method-dispatch check.
+| `c.db` — native autocomplete | Yes | No | No | No |
+| Full type inference (zero annotations) | Yes | No | No | No |
+| Auto dependency tracking | Yes | No | No | No |
+| Introspection (JSON graph) | Yes | No | No | No |
+| Fuzzy errors ("did you mean?") | Yes | No | No | No |
+| Scope mismatch warnings | Yes | No | No | No |
+| Lifecycle (onInit/onDestroy) | Yes | No | dispose only | No |
+| Decorators required | No | No | No | Yes |
+| Runtime deps | 0 | 0 | 1 | 7 |
+| Bundle (unpacked) | 8.8 KB | 43 KB | 320 KB | 1,466 KB |
 
 ### Runtime compatibility
 
-No decorators, no `reflect-metadata`, no compiler plugins. Pure ES2022.
+Pure ES2022. No decorators, no `reflect-metadata`, no compiler plugins.
 
 | Runtime | Status |
 |---|---|

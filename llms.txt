@@ -1,7 +1,7 @@
 # inwire
 
 > Type-safe dependency injection for TypeScript. Builder pattern, full inference, no decorators, no tokens.
-> Proxy-based lazy singleton resolution. ~4.7KB gzipped, 0 runtime deps.
+> Proxy-based lazy singleton resolution. ~3.2KB gzipped, 0 runtime deps.
 
 inwire uses a fluent builder to define dependencies one by one: `container().add('key', factory).build()`. Each `.add()` accumulates the type — the `c` parameter in every factory knows about all previously registered dependencies. Property access on the built container triggers lazy resolution through a Proxy. Instances are cached as singletons by default. Built-in introspection methods return serializable JSON, making the dependency graph directly consumable by LLMs and AI tooling.
 

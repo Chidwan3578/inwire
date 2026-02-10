@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/axelhamil/inwire/compare/v1.0.1...v1.0.2) (2026-02-10)
+
+
+### Bug Fixes
+
+* **types:** eliminate unnecessary `any` casts and tighten type safety ([8be0997](https://github.com/axelhamil/inwire/commit/8be0997446be0f3461a75183fc1ed867ae48b0c4))
+
 ## [1.0.1](https://github.com/axelhamil/inwire/compare/v1.0.0...v1.0.1) (2026-02-10)
 
 

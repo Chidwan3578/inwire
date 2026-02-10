@@ -6,7 +6,7 @@
  * const factory: Factory<MyService> = (c) => new MyService(c.db);
  * ```
  */
-export type Factory<T = any> = (container: any) => T;
+export type Factory<T = unknown> = (container: any) => T;
 
 /**
  * An object of factory functions — the definition of a container.
@@ -75,13 +75,13 @@ export interface ScopeOptions {
  * container.inspect(); // ContainerGraph
  * ```
  */
-export type Container<T extends Record<string, any> = Record<string, any>> =
+export type Container<T extends Record<string, unknown> = Record<string, unknown>> =
   T & IContainer<T>;
 
 /**
  * Container methods interface. Defines the API available on every container.
  */
-export interface IContainer<T extends Record<string, any> = Record<string, any>> {
+export interface IContainer<T extends Record<string, unknown> = Record<string, unknown>> {
   /**
    * Creates a child container with additional dependencies.
    * Child inherits all parent singletons and can add/override deps.
@@ -96,7 +96,7 @@ export interface IContainer<T extends Record<string, any> = Record<string, any>>
    * request.logger;    // inherited from parent
    * ```
    */
-  scope<E extends DepsDefinition>(extra: E, options?: ScopeOptions): Container<T & ResolvedDeps<E>>;
+  scope<E extends DepsDefinition>(extra: E, options?: ScopeOptions): Container<Omit<T, keyof ResolvedDeps<E>> & ResolvedDeps<E>>;
 
   /**
    * Returns a new container with additional dependencies.
@@ -107,7 +107,7 @@ export interface IContainer<T extends Record<string, any> = Record<string, any>>
    * const appWithAuth = app.extend(authDeps);
    * ```
    */
-  extend<E extends DepsDefinition>(extra: E): Container<T & ResolvedDeps<E>>;
+  extend<E extends DepsDefinition>(extra: E): Container<Omit<T, keyof ResolvedDeps<E>> & ResolvedDeps<E>>;
 
   /**
    * Pre-resolves dependencies (warm-up).
@@ -211,21 +211,9 @@ export interface ContainerHealth {
  * A warning detected by the container's runtime analysis.
  */
 export interface ContainerWarning {
-  type: 'scope_mismatch' | 'duplicate_key';
+  type: 'scope_mismatch';
   message: string;
   details: Record<string, unknown>;
-}
-
-/**
- * Interface for the resolver — the core engine behind the Proxy.
- */
-export interface IResolver {
-  resolve(key: string): unknown;
-  isResolved(key: string): boolean;
-  getDepGraph(): Map<string, string[]>;
-  getResolvedKeys(): string[];
-  getFactories(): Map<string, Factory>;
-  getCache(): Map<string, unknown>;
 }
 
 /**

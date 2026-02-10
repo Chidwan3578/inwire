@@ -53,7 +53,7 @@ export function createContainer<T extends DepsDefinition>(
  */
 export function buildContainerProxy(resolver: Resolver): Container<any> {
   const introspection = new Introspection(resolver);
-  const methods: Record<string, Function> = {
+  const methods = {
     scope: (extra: DepsDefinition, options?: ScopeOptions) => createScope(resolver, extra, options),
 
     extend: (extra: DepsDefinition) => {
@@ -110,11 +110,11 @@ export function buildContainerProxy(resolver: Resolver): Container<any> {
           return undefined;
         }
 
-        const key = prop as string;
+        const key = prop;
 
         // Container methods
         if (key in methods) {
-          return methods[key];
+          return methods[key as keyof typeof methods];
         }
 
         // Dependency resolution
@@ -123,7 +123,7 @@ export function buildContainerProxy(resolver: Resolver): Container<any> {
 
       has(_target, prop) {
         if (typeof prop === 'symbol') return false;
-        const key = prop as string;
+        const key = prop;
         return (
           key in methods ||
           resolver.getFactories().has(key) ||
@@ -137,7 +137,7 @@ export function buildContainerProxy(resolver: Resolver): Container<any> {
 
       getOwnPropertyDescriptor(_target, prop) {
         if (typeof prop === 'symbol') return undefined;
-        const key = prop as string;
+        const key = prop;
         if (
           key in methods ||
           resolver.getFactories().has(key) ||

@@ -1,5 +1,5 @@
 import { describe, it, expect, expectTypeOf } from 'vitest';
-import { createContainer, transient } from '../src/index.js';
+import { createContainer, transient, ContainerConfigError, ProviderNotFoundError, CircularDependencyError, FactoryError, UndefinedReturnError, ReservedKeyError } from '../src/index.js';
 import type { DepsDefinition } from '../src/index.js';
 
 describe('TypeScript type inference', () => {
@@ -88,5 +88,79 @@ describe('TypeScript type inference', () => {
 
     expectTypeOf(extended.a).toEqualTypeOf<number>();
     expectTypeOf(extended.b).toEqualTypeOf<string>();
+  });
+
+  it('scope override replaces type instead of intersecting', () => {
+    const parent = createContainer({
+      value: () => 'hello',
+    });
+
+    const child = parent.scope({
+      value: () => 42,
+    });
+
+    expectTypeOf(child.value).toEqualTypeOf<number>();
+  });
+
+  it('extend override replaces type instead of intersecting', () => {
+    const base = createContainer({
+      value: () => 'hello',
+    });
+
+    const extended = base.extend({
+      value: () => 42,
+    });
+
+    expectTypeOf(extended.value).toEqualTypeOf<number>();
+  });
+
+  it('error details have correct types', () => {
+    const configError = new ContainerConfigError('key', 'string');
+    expectTypeOf(configError.details.key).toBeString();
+    expectTypeOf(configError.details.actualType).toBeString();
+
+    const notFoundError = new ProviderNotFoundError('key', ['a'], ['b'], 'c');
+    expectTypeOf(notFoundError.details.key).toBeString();
+    expectTypeOf(notFoundError.details.chain).toEqualTypeOf<string[]>();
+    expectTypeOf(notFoundError.details.registered).toEqualTypeOf<string[]>();
+    expectTypeOf(notFoundError.details.suggestion).toEqualTypeOf<string | undefined>();
+
+    const circularError = new CircularDependencyError('key', ['a']);
+    expectTypeOf(circularError.details.key).toBeString();
+    expectTypeOf(circularError.details.chain).toEqualTypeOf<string[]>();
+    expectTypeOf(circularError.details.cycle).toBeString();
+
+    const factoryError = new FactoryError('key', ['a'], new Error('test'));
+    expectTypeOf(factoryError.details.key).toBeString();
+    expectTypeOf(factoryError.details.chain).toEqualTypeOf<string[]>();
+    expectTypeOf(factoryError.details.originalError).toBeString();
+
+    const undefinedError = new UndefinedReturnError('key', ['a']);
+    expectTypeOf(undefinedError.details.key).toBeString();
+    expectTypeOf(undefinedError.details.chain).toEqualTypeOf<string[]>();
+
+    const reservedError = new ReservedKeyError('scope', ['scope']);
+    expectTypeOf(reservedError.details.key).toBeString();
+    expectTypeOf(reservedError.details.reserved).toEqualTypeOf<string[]>();
+  });
+
+  it('preload and reset accept keyof T', () => {
+    const container = createContainer({
+      db: () => 'postgres',
+      cache: () => new Map(),
+    });
+
+    // These should compile — keyof T restricts to 'db' | 'cache'
+    expectTypeOf(container.preload).parameter(0).toEqualTypeOf<'db' | 'cache'>();
+    expectTypeOf(container.reset).parameter(0).toEqualTypeOf<'db' | 'cache'>();
+  });
+
+  it('createContainer with empty object produces typed container', () => {
+    const container = createContainer({});
+
+    // Container methods still exist on empty container
+    expectTypeOf(container.inspect).toBeFunction();
+    expectTypeOf(container.dispose).toBeFunction();
+    expectTypeOf(container.health).toBeFunction();
   });
 });

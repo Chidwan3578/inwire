@@ -1,4 +1,4 @@
-import type { DepsDefinition, Factory, IResolver } from '../domain/types.js';
+import type { DepsDefinition, Factory } from '../domain/types.js';
 import { hasOnInit } from '../domain/lifecycle.js';
 import {
   CircularDependencyError,
@@ -15,7 +15,7 @@ import { isTransient } from './transient.js';
  * Handles lazy resolution, singleton caching, cycle detection,
  * dependency tracking, and scope mismatch warnings.
  */
-export class Resolver implements IResolver {
+export class Resolver {
   private readonly factories: Map<string, Factory>;
   private readonly cache: Map<string, unknown>;
   private readonly resolving = new Set<string>();
@@ -179,13 +179,13 @@ export class Resolver implements IResolver {
     factoryKey: string,
     deps: string[],
     chain: string[],
-  ): any {
+  ): unknown {
     return new Proxy(
       {},
       {
         get: (_target, prop) => {
           if (typeof prop === 'symbol') return undefined;
-          const depKey = prop as string;
+          const depKey = prop;
           deps.push(depKey);
           return this.resolve(depKey, chain);
         },

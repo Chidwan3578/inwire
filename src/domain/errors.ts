@@ -38,11 +38,11 @@ export abstract class ContainerError extends Error {
  */
 export class ContainerConfigError extends ContainerError {
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { key: string; actualType: string };
 
   constructor(key: string, actualType: string) {
     super(`'${key}' must be a factory function, got ${actualType}.`);
-    this.hint = `Wrap it: ${key}: () => ${JSON.stringify(key === key ? `<your ${actualType} value>` : key)}`;
+    this.hint = `Wrap it: ${key}: () => <your ${actualType} value>`;
     this.details = { key, actualType };
   }
 }
@@ -59,7 +59,7 @@ export class ContainerConfigError extends ContainerError {
  */
 export class ReservedKeyError extends ContainerError {
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { key: string; reserved: string[] };
 
   constructor(key: string, reserved: readonly string[]) {
     super(`'${key}' is a reserved container method.`);
@@ -81,7 +81,7 @@ export class ReservedKeyError extends ContainerError {
  */
 export class ProviderNotFoundError extends ContainerError {
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { key: string; chain: string[]; registered: string[]; suggestion: string | undefined };
 
   constructor(
     key: string,
@@ -118,7 +118,7 @@ export class ProviderNotFoundError extends ContainerError {
  */
 export class CircularDependencyError extends ContainerError {
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { key: string; chain: string[]; cycle: string };
 
   constructor(key: string, chain: string[]) {
     const cycle = [...chain, key].join(' -> ');
@@ -147,7 +147,7 @@ export class CircularDependencyError extends ContainerError {
  */
 export class UndefinedReturnError extends ContainerError {
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { key: string; chain: string[] };
 
   constructor(key: string, chain: string[]) {
     const chainStr =
@@ -173,7 +173,7 @@ export class UndefinedReturnError extends ContainerError {
  */
 export class FactoryError extends ContainerError {
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { key: string; chain: string[]; originalError: string };
   readonly originalError: unknown;
 
   constructor(key: string, chain: string[], originalError: unknown) {
@@ -205,7 +205,7 @@ export class ScopeMismatchWarning implements ContainerWarning {
   readonly type = 'scope_mismatch' as const;
   readonly message: string;
   readonly hint: string;
-  readonly details: Record<string, unknown>;
+  readonly details: { singleton: string; transient: string };
 
   constructor(singletonKey: string, transientKey: string) {
     this.message = `Singleton '${singletonKey}' depends on transient '${transientKey}'.`;

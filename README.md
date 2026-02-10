@@ -13,7 +13,7 @@ Zero-ceremony dependency injection for TypeScript. Full inference, no decorators
 ## Install
 
 ```bash
-npm i inwire
+npm/pnpm i inwire
 ```
 
 ## Quick Start

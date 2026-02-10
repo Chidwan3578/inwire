@@ -215,7 +215,7 @@ A module is a function `(builder) => builder` that chains `.add()` calls. `c` is
 import { container, ContainerBuilder } from 'inwire';
 
 function dbModule<T extends { config: { dbUrl: string }; logger: Logger }>(
-  b: ContainerBuilder<Record<string, any>, T>,
+  b: ContainerBuilder<Record<string, unknown>, T>,
 ) {
   return b
     .add('db', (c) => new Database(c.config.dbUrl))
@@ -323,6 +323,58 @@ detectDuplicateKeys(authModule, userModule);
 | [02-modular-testing.ts](examples/02-modular-testing.ts) | `npm run example:test` | Free mode, instance values, test overrides, extend + transient |
 | [03-plugin-system.ts](examples/03-plugin-system.ts) | `npm run example:plugin` | Extend chain, scoped jobs, health, JSON graph for LLM |
 | [04-modules.ts](examples/04-modules.ts) | `npm run example:modules` | addModule, module() post-build, typed reusable modules |
+
+## Performance
+
+Benchmarks on Node.js v24 (V8), Apple M-series equivalent. Run: `npm run bench`.
+
+### Resolve (hot path)
+
+| Operation | ns/op | ops/sec |
+|---|---|---|
+| Warm singleton (cached) | **~25 ns** | 40M |
+| HTTP handler (3 warm singletons) | **~77 ns** | 13M |
+| Transient resolve | ~255 ns | 3.9M |
+| `describe(key)` | ~70 ns | 14M |
+| `health()` | ~90 ns | 11M |
+| `inspect()` | ~315 ns | 3.1M |
+
+### Build & lifecycle (cold path — runs once)
+
+| Operation | ns/op | ops/sec |
+|---|---|---|
+| Build container (3 deps) | ~1,560 ns | 640K |
+| Build container (10 deps) | ~1,900 ns | 520K |
+| Cold resolve (5-dep chain) | ~3,000 ns | 330K |
+| Scope creation | ~1,460 ns | 680K |
+| Scope + resolve | ~1,900 ns | 515K |
+| Extend | ~1,810 ns | 550K |
+| `reset()` + re-resolve | ~530 ns | 1.9M |
+
+### Overhead context
+
+| Reference | ns/op |
+|---|---|
+| Plain object property access | ~1 ns |
+| `Map.get(key)` | ~5 ns |
+| Raw `Proxy` + `Map.get` | ~15 ns |
+| **inwire warm singleton** | **~25 ns** |
+| `JSON.parse('{"id":1,"name":"test"}')` | ~130 ns |
+
+The DI overhead per request (~77 ns for 3 deps) is **faster than parsing a single tiny JSON object**. Singleton resolution adds ~10 ns over a raw Proxy — the cost of one method-dispatch check.
+
+### Runtime compatibility
+
+No decorators, no `reflect-metadata`, no compiler plugins. Pure ES2022.
+
+| Runtime | Status |
+|---|---|
+| Node.js | Works |
+| Deno | Works |
+| Bun | Works |
+| Cloudflare Workers | Works |
+| Vercel Edge | Works |
+| Browser | Works |
 
 ## Comparison
 

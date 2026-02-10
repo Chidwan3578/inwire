@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/axelhamil/inwire/compare/v1.1.0...v1.2.0) (2026-02-10)
+
+
+### Bug Fixes
+
+* **ci:** regenerate pnpm-lock.yaml with biome dependency ([e29ce21](https://github.com/axelhamil/inwire/commit/e29ce21e5e7a46f2ecabd9f0034fe31c55710536))
+* **lint:** resolve all Biome warnings and format errors ([b48438d](https://github.com/axelhamil/inwire/commit/b48438df5154639d615a4b527d81b4c69fbcbaa9))
+
+
+### Features
+
+* add Biome linter/formatter + revamp CI pipeline ([d4cef08](https://github.com/axelhamil/inwire/commit/d4cef08274de9ffe27380db49c539f91f3a4d1e2))
+* switch to pnpm + add "Why inwire?" section + remove benchmarks ([672eb74](https://github.com/axelhamil/inwire/commit/672eb74a0ee437630521c05cf83a308dda25618c))
+
 # [1.1.0](https://github.com/axelhamil/inwire/compare/v1.0.3...v1.1.0) (2026-02-10)
 
 

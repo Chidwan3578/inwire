@@ -42,6 +42,6 @@ export function isTransient(factory: unknown): factory is TransientFactory {
   return (
     typeof factory === 'function' &&
     TRANSIENT_MARKER in factory &&
-    (factory as any)[TRANSIENT_MARKER] === true
+    (factory as Record<symbol, unknown>)[TRANSIENT_MARKER] === true
   );
 }

@@ -1,3 +1,5 @@
+import type { ContainerWarning } from './types.js';
+
 /**
  * Base class for all container errors.
  * Every error includes a human-readable `hint` and structured `details`
@@ -199,7 +201,7 @@ export class FactoryError extends ContainerError {
  * // ScopeMismatchWarning: Singleton 'userService' depends on transient 'requestId'.
  * ```
  */
-export class ScopeMismatchWarning {
+export class ScopeMismatchWarning implements ContainerWarning {
   readonly type = 'scope_mismatch' as const;
   readonly message: string;
   readonly hint: string;

@@ -19,7 +19,7 @@ export class Validator implements IValidator {
    */
   validateConfig(config: Record<string, unknown>): void {
     for (const [key, value] of Object.entries(config)) {
-      if (RESERVED_KEYS.includes(key as any)) {
+      if ((RESERVED_KEYS as readonly string[]).includes(key)) {
         throw new ReservedKeyError(key, RESERVED_KEYS);
       }
       if (typeof value !== 'function') {

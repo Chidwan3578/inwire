@@ -34,7 +34,7 @@ export function hasOnInit(value: unknown): value is OnInit {
     value !== null &&
     typeof value === 'object' &&
     'onInit' in value &&
-    typeof (value as any).onInit === 'function'
+    typeof value.onInit === 'function'
   );
 }
 
@@ -44,6 +44,6 @@ export function hasOnDestroy(value: unknown): value is OnDestroy {
     value !== null &&
     typeof value === 'object' &&
     'onDestroy' in value &&
-    typeof (value as any).onDestroy === 'function'
+    typeof value.onDestroy === 'function'
   );
 }

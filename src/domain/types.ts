@@ -219,7 +219,7 @@ export interface ContainerWarning {
 /**
  * Interface for the resolver — the core engine behind the Proxy.
  */
-export interface IResolver<T extends DepsDefinition = DepsDefinition> {
+export interface IResolver {
   resolve(key: string): unknown;
   isResolved(key: string): boolean;
   getDepGraph(): Map<string, string[]>;

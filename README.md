@@ -326,23 +326,31 @@ detectDuplicateKeys(authModule, userModule);
 
 ## Performance
 
-Benchmarks on Node.js v24 (V8), Apple M-series equivalent. Run: `npm run bench`.
+All benchmarks: Node.js v24, V8 13.6. Same scenario: 5 deps with chain (config → logger → db → userRepo → userService). Run: `npm run bench` / `npm run bench:compare`.
 
-### Resolve (hot path)
+### vs. other DI containers
+
+| Library | warm singleton | http handler (3 deps) | cold resolve | build |
+|---|---|---|---|---|
+| **inwire** | **~22 ns** | **~71 ns** | ~3,200 ns | ~1,840 ns |
+| ioctopus | ~20 ns | ~77 ns | ~1,070 ns | ~530 ns |
+| awilix | ~25 ns | ~74 ns | ~6,240 ns | ~5,820 ns |
+| inversify | ~580 ns | ~1,020 ns | ~11,740 ns | ~10,280 ns |
+
+**Hot path** (warm singleton, HTTP handler): inwire, ioctopus, and awilix are within measurement noise (~20-25 ns). Inversify is **25x slower** on cached singletons.
+
+**Cold path** (build, first resolve): ioctopus is fastest because it stores raw entries. inwire is in the middle — the Proxy setup + validation + tracking adds ~1.5 μs over a raw Map, but runs only once at startup.
+
+### inwire detailed
 
 | Operation | ns/op | ops/sec |
 |---|---|---|
-| Warm singleton (cached) | **~25 ns** | 40M |
-| HTTP handler (3 warm singletons) | **~77 ns** | 13M |
+| Warm singleton (cached) | **~22 ns** | 45M |
+| HTTP handler (3 warm singletons) | **~71 ns** | 14M |
 | Transient resolve | ~255 ns | 3.9M |
 | `describe(key)` | ~70 ns | 14M |
 | `health()` | ~90 ns | 11M |
 | `inspect()` | ~315 ns | 3.1M |
-
-### Build & lifecycle (cold path — runs once)
-
-| Operation | ns/op | ops/sec |
-|---|---|---|
 | Build container (3 deps) | ~1,560 ns | 640K |
 | Build container (10 deps) | ~1,900 ns | 520K |
 | Cold resolve (5-dep chain) | ~3,000 ns | 330K |
@@ -358,10 +366,10 @@ Benchmarks on Node.js v24 (V8), Apple M-series equivalent. Run: `npm run bench`.
 | Plain object property access | ~1 ns |
 | `Map.get(key)` | ~5 ns |
 | Raw `Proxy` + `Map.get` | ~15 ns |
-| **inwire warm singleton** | **~25 ns** |
+| **inwire warm singleton** | **~22 ns** |
 | `JSON.parse('{"id":1,"name":"test"}')` | ~130 ns |
 
-The DI overhead per request (~77 ns for 3 deps) is **faster than parsing a single tiny JSON object**. Singleton resolution adds ~10 ns over a raw Proxy — the cost of one method-dispatch check.
+DI overhead per request (~71 ns for 3 deps) is **faster than parsing a single tiny JSON object**. Singleton resolution adds ~7 ns over a raw Proxy — one method-dispatch check.
 
 ### Runtime compatibility
 
@@ -389,8 +397,9 @@ No decorators, no `reflect-metadata`, no compiler plugins. Pure ES2022.
 | Lifecycle hooks | `onInit`/`onDestroy` | `dispose()` | `beforeResolution`/`afterResolution` | No | `onModuleInit`/`onModuleDestroy` |
 | Introspection | Built-in JSON graph | `.registrations` | `isRegistered()` | No | DevTools |
 | Smart errors | 7 types + hints | Resolution chain | Generic | Generic | Generic |
-| Bundle size (gzip) | ~4.7 KB | ~3.6 KB | ~5.6 KB (+reflect-metadata) | ~50 KB | Framework |
-| Runtime deps | 0 | 1 | 1 (+reflect-metadata) | 2 | Many |
+| Warm singleton | ~22 ns | N/A | N/A | ~580 ns | N/A |
+| Bundle (unpacked) | 8.8 KB | 320 KB | 149 KB (+reflect-metadata) | 1,466 KB | Framework |
+| Runtime deps | 0 | 1 (fast-glob) | 1 (reflect-metadata) | 7 (+reflect-metadata) | Many |
 
 ## Architecture
 

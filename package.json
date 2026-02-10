@@ -26,6 +26,7 @@
     "example:plugin": "tsx examples/03-plugin-system.ts",
     "example:modules": "tsx examples/04-modules.ts",
     "bench": "tsx benchmarks/bench.ts",
+    "bench:compare": "tsx benchmarks/compare.ts",
     "prepublishOnly": "npm run build"
   },
   "publishConfig": {

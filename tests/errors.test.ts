@@ -235,6 +235,7 @@ describe('errors', () => {
         container()
           .add('inspect' as any, () => 'x')
           .build();
+        expect.unreachable('should throw');
       } catch (e) {
         expect(e).toBeInstanceOf(ContainerError);
       }
@@ -246,6 +247,7 @@ describe('errors', () => {
           .add('a', () => 1)
           .build();
         (c as any).missing;
+        expect.unreachable('should throw');
       } catch (e) {
         expect(e).toBeInstanceOf(ContainerError);
       }

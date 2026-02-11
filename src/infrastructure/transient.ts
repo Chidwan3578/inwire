@@ -20,15 +20,15 @@ export interface TransientFactory<T = unknown> {
  *
  * @example
  * ```typescript
- * import { createContainer, transient } from 'inwire';
+ * import { container, transient } from 'inwire';
  *
- * const container = createContainer({
- *   logger: () => new LoggerService(),                  // singleton (default)
- *   requestId: transient(() => crypto.randomUUID()),   // new instance every access
- * });
+ * const app = container()
+ *   .add('logger', () => new LoggerService())                 // singleton (default)
+ *   .addTransient('requestId', () => crypto.randomUUID())     // new instance every access
+ *   .build();
  *
- * container.requestId; // 'abc-123'
- * container.requestId; // 'def-456' (different!)
+ * app.requestId; // 'abc-123'
+ * app.requestId; // 'def-456' (different!)
  * ```
  */
 export function transient<T>(factory: Factory<T>): Factory<T> {

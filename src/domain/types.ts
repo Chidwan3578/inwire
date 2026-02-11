@@ -213,7 +213,7 @@ export interface ContainerHealth {
  * A warning detected by the container's runtime analysis.
  */
 export interface ContainerWarning {
-  type: 'scope_mismatch';
+  type: 'scope_mismatch' | 'async_init_error';
   message: string;
   details: Record<string, unknown>;
 }

@@ -31,7 +31,7 @@ export abstract class ContainerError extends Error {
  *
  * @example
  * ```typescript
- * createContainer({ apiKey: 'sk-123' });
+ * container().add('apiKey', 'sk-123');
  * // ContainerConfigError: 'apiKey' must be a factory function, got string.
  * // hint: "Wrap it: apiKey: () => 'sk-123'"
  * ```
@@ -52,7 +52,7 @@ export class ContainerConfigError extends ContainerError {
  *
  * @example
  * ```typescript
- * createContainer({ inspect: () => 'foo' });
+ * container().add('inspect', () => 'foo');
  * // ReservedKeyError: 'inspect' is a reserved container method.
  * // hint: "Rename this dependency, e.g. 'inspectService' or 'dataInspector'."
  * ```
@@ -100,9 +100,10 @@ export class ProviderNotFoundError extends ContainerError {
       `Cannot resolve '${chain[0] ?? key}': dependency '${key}' not found.${chainStr}${registeredStr}${suggestionStr}`,
     );
 
+    const addSnippet = `.add('${key}', (c) => new ${key[0].toUpperCase()}${key.slice(1)}(/* deps */))`;
     this.hint = suggestion
-      ? `Did you mean '${suggestion}'? Or add '${key}' to your container:\n  createContainer({\n    ...existing,\n    ${key}: (c) => new Your${key[0].toUpperCase()}${key.slice(1)}(/* deps */),\n  });`
-      : `Add '${key}' to your container:\n  createContainer({\n    ...existing,\n    ${key}: (c) => new Your${key[0].toUpperCase()}${key.slice(1)}(/* deps */),\n  });`;
+      ? `Did you mean '${suggestion}'? Or add '${key}' to your container:\n  container()${addSnippet}`
+      : `Add '${key}' to your container:\n  container()${addSnippet}`;
     this.details = { key, chain, registered, suggestion };
   }
 }
@@ -213,3 +214,31 @@ export class ScopeMismatchWarning implements ContainerWarning {
     this.details = { singleton: singletonKey, transient: transientKey };
   }
 }
+
+/**
+ * Warning emitted when an async `onInit()` rejects during lazy resolution.
+ * The error is collected (not thrown) because lazy access is fire-and-forget.
+ * Use `preload()` to await and surface async init errors.
+ *
+ * @example
+ * ```typescript
+ * // health().warnings may include:
+ * // { type: 'async_init_error', message: "onInit() for 'db' rejected: connection refused" }
+ * ```
+ */
+export class AsyncInitErrorWarning implements ContainerWarning {
+  readonly type = 'async_init_error' as const;
+  readonly message: string;
+  readonly hint: string;
+  readonly details: { key: string; error: string };
+
+  constructor(key: string, error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    this.message = `onInit() for '${key}' rejected: ${errorMessage}`;
+    this.hint = `Use preload('${key}') to await and handle async init errors.`;
+    this.details = { key, error: errorMessage };
+  }
+}
+
+/** Union of all warning types emitted by the container. */
+export type AnyWarning = ScopeMismatchWarning | AsyncInitErrorWarning;

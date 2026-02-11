@@ -111,4 +111,46 @@ describe('module (post-build)', () => {
 
     expect(step2.z).toBe(60);
   });
+
+  it('triple chain module().module().module()', () => {
+    const base = container()
+      .add('a', () => 1)
+      .build();
+
+    const result = base
+      .module((b) => b.add('b', (c) => c.a + 1))
+      .module((b) => b.add('c', (c) => c.b + 1))
+      .module((b) => b.add('d', (c) => c.c + 1));
+
+    expect(result.d).toBe(4);
+  });
+
+  it('module after reset', () => {
+    let callCount = 0;
+
+    const base = container()
+      .add('counter', () => ++callCount)
+      .build();
+
+    base.counter;
+    expect(callCount).toBe(1);
+
+    base.reset('counter');
+
+    const extended = base.module((b) => b.add('doubled', (c) => c.counter * 2));
+    expect(extended.doubled).toBe(4); // counter re-runs -> 2, doubled = 4
+  });
+
+  it('module with addModule in the callback', () => {
+    const authModule = (b: any) => b.add('auth', () => 'authenticated');
+
+    const base = container().add('config', { env: 'test' }).build();
+
+    const extended = base.module((b) =>
+      b.addModule(authModule).add('api', (c: any) => `${c.auth}-api`),
+    );
+
+    expect(extended.auth).toBe('authenticated');
+    expect(extended.api).toBe('authenticated-api');
+  });
 });

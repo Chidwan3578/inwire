@@ -1,4 +1,6 @@
+import type { AnyWarning } from '../domain/errors.js';
 import {
+  AsyncInitErrorWarning,
   CircularDependencyError,
   FactoryError,
   ProviderNotFoundError,
@@ -20,7 +22,7 @@ export class Resolver {
   private readonly cache: Map<string, unknown>;
   private readonly resolving = new Set<string>();
   private readonly depGraph = new Map<string, string[]>();
-  private readonly warnings: ScopeMismatchWarning[] = [];
+  private readonly warnings: AnyWarning[] = [];
   private readonly validator = new Validator();
   private readonly initCalled = new Set<string>();
   private deferOnInit = false;
@@ -109,7 +111,9 @@ export class Resolver {
         this.initCalled.add(key);
         const initResult = instance.onInit();
         if (initResult instanceof Promise) {
-          initResult.catch(() => {});
+          initResult.catch((error) => {
+            this.warnings.push(new AsyncInitErrorWarning(key, error));
+          });
         }
       }
 
@@ -149,7 +153,7 @@ export class Resolver {
     return this.cache;
   }
 
-  getWarnings(): ScopeMismatchWarning[] {
+  getWarnings(): AnyWarning[] {
     return [...this.warnings];
   }
 
@@ -169,11 +173,12 @@ export class Resolver {
 
   async callOnInit(key: string): Promise<void> {
     if (this.initCalled.has(key)) return;
-    this.initCalled.add(key);
+    if (!this.cache.has(key)) return;
     const instance = this.cache.get(key);
     if (hasOnInit(instance)) {
       await instance.onInit();
     }
+    this.initCalled.add(key);
   }
 
   clearInitState(...keys: string[]): void {
@@ -184,6 +189,31 @@ export class Resolver {
 
   clearAllInitState(): void {
     this.initCalled.clear();
+  }
+
+  clearDepGraph(...keys: string[]): void {
+    for (const key of keys) this.depGraph.delete(key);
+  }
+
+  clearAllDepGraph(): void {
+    this.depGraph.clear();
+  }
+
+  clearWarnings(): void {
+    this.warnings.length = 0;
+  }
+
+  clearWarningsForKeys(...keys: string[]): void {
+    const keySet = new Set(keys);
+    const keep = this.warnings.filter((w) => {
+      if (w.type === 'async_init_error') return !keySet.has(w.details.key);
+      if (w.type === 'scope_mismatch') {
+        return !keySet.has(w.details.singleton) && !keySet.has(w.details.transient);
+      }
+      return true;
+    });
+    this.warnings.length = 0;
+    this.warnings.push(...keep);
   }
 
   getInitCalled(): Set<string> {

@@ -152,4 +152,82 @@ describe('container builder', () => {
     expect(resolved).toEqual(['c', 'a']);
     expect(resolved).not.toContain('b');
   });
+
+  describe('proxy behavior', () => {
+    it('Object.entries() returns deps (not methods)', () => {
+      const c = container()
+        .add('db', () => 'postgres')
+        .add('cache', () => 'redis')
+        .build();
+
+      c.db;
+      c.cache;
+
+      const entries = Object.entries(c);
+      const keys = entries.map(([k]) => k);
+      expect(keys).toContain('db');
+      expect(keys).toContain('cache');
+      expect(keys).not.toContain('inspect');
+      expect(keys).not.toContain('dispose');
+    });
+
+    it('for...in iterates deps only', () => {
+      const c = container()
+        .add('a', () => 1)
+        .add('b', () => 2)
+        .build();
+
+      const keys: string[] = [];
+      for (const key in c) {
+        keys.push(key);
+      }
+
+      expect(keys).toContain('a');
+      expect(keys).toContain('b');
+      expect(keys).not.toContain('inspect');
+      expect(keys).not.toContain('scope');
+    });
+
+    it('spread {...container} copies resolved values', () => {
+      const c = container()
+        .add('x', () => 10)
+        .add('y', () => 20)
+        .build();
+
+      c.x;
+      c.y;
+
+      const spread = { ...c };
+      expect(spread.x).toBe(10);
+      expect(spread.y).toBe(20);
+    });
+
+    it('JSON.stringify({...container}) serializes resolved deps', () => {
+      const c = container()
+        .add('name', () => 'inwire')
+        .add('version', () => 1)
+        .build();
+
+      c.name;
+      c.version;
+
+      // Direct JSON.stringify(c) triggers toJSON lookup on the proxy, which throws.
+      // Spread first to extract values, then serialize.
+      const json = JSON.stringify({ ...c });
+      const parsed = JSON.parse(json);
+      expect(parsed.name).toBe('inwire');
+      expect(parsed.version).toBe(1);
+    });
+
+    it('Object.getOwnPropertyNames() includes deps + methods', () => {
+      const c = container()
+        .add('db', () => 'pg')
+        .build();
+
+      const names = Object.getOwnPropertyNames(c);
+      expect(names).toContain('db');
+      expect(names).toContain('inspect');
+      expect(names).toContain('dispose');
+    });
+  });
 });

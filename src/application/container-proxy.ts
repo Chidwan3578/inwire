@@ -46,6 +46,15 @@ function topologicalLevels(depGraph: Map<string, string[]>, keys: Set<string>): 
     queue = next;
   }
 
+  const processedCount = levels.reduce((sum, l) => sum + l.length, 0);
+  if (processedCount < keys.size) {
+    const processedSet = new Set(levels.flat());
+    const remaining = [...keys].filter((k) => !processedSet.has(k));
+    throw new Error(
+      `Incomplete topological sort: [${remaining.join(', ')}] could not be ordered. This may indicate a cycle in the dependency graph.`,
+    );
+  }
+
   return levels;
 }
 
@@ -60,7 +69,14 @@ export function buildContainerProxy(
 ): Container<Record<string, unknown>> {
   const introspection = new Introspection(resolver);
   const methods = {
+    /**
+     * Creates a child container with a parent-child chain.
+     * - Child gets its own cache; parent singletons are reused on cache miss (lookup walks up).
+     * - Overriding a key shadows the parent — the parent's cached instance is untouched.
+     * - Ideal for per-request / per-job isolation (e.g. requestId, traceId).
+     */
     scope: (extra: Record<string, (c: unknown) => unknown>, options?: ScopeOptions) => {
+      validator.validateConfig(extra);
       const childFactories = new Map<string, Factory>();
       for (const [key, factory] of Object.entries(extra)) {
         childFactories.set(key, factory as Factory);
@@ -69,6 +85,12 @@ export function buildContainerProxy(
       return buildContainerProxy(childResolver, builderFactory);
     },
 
+    /**
+     * Returns a new flat container with merged factories.
+     * - Existing singleton cache is snapshot-copied (shared instances, no parent chain).
+     * - New keys are added; duplicate keys override the original factory.
+     * - Ideal for plugins, feature modules, or test overrides.
+     */
     extend: (extra: Record<string, (c: unknown) => unknown>) => {
       validator.validateConfig(extra);
       const merged = new Map(resolver.getFactories());
@@ -95,11 +117,23 @@ export function buildContainerProxy(
     preload: async (...keys: string[]) => {
       const toResolve = keys.length > 0 ? keys : [...resolver.getFactories().keys()];
 
+      const cacheKeysBefore = new Set(resolver.getCache().keys());
       resolver.setDeferOnInit(true);
-      for (const key of toResolve) {
-        resolver.resolve(key);
+      try {
+        for (const key of toResolve) {
+          resolver.resolve(key);
+        }
+      } catch (error) {
+        // Evict keys cached during this failed deferred phase
+        // so lazy access re-resolves them with onInit enabled
+        const cache = resolver.getCache();
+        for (const key of cache.keys()) {
+          if (!cacheKeysBefore.has(key)) cache.delete(key);
+        }
+        throw error;
+      } finally {
+        resolver.setDeferOnInit(false);
       }
-      resolver.setDeferOnInit(false);
 
       const depGraph = resolver.getDepGraph();
       const allKeys = new Set<string>();
@@ -115,17 +149,35 @@ export function buildContainerProxy(
       }
 
       const levels = topologicalLevels(depGraph, allKeys);
+      const initErrors: unknown[] = [];
       for (const level of levels) {
-        await Promise.all(level.map((k) => resolver.callOnInit(k)));
+        const results = await Promise.allSettled(level.map((k) => resolver.callOnInit(k)));
+        for (const result of results) {
+          if (result.status === 'rejected') initErrors.push(result.reason);
+        }
+      }
+      if (initErrors.length === 1) throw initErrors[0];
+      if (initErrors.length > 1) {
+        throw new AggregateError(
+          initErrors,
+          `preload() encountered ${initErrors.length} onInit errors`,
+        );
       }
     },
 
     reset: (...keys: string[]) => {
       const cache = resolver.getCache();
-      for (const key of keys) {
-        cache.delete(key);
+      if (keys.length === 0) {
+        cache.clear();
+        resolver.clearAllInitState();
+        resolver.clearAllDepGraph();
+        resolver.clearWarnings();
+      } else {
+        for (const key of keys) cache.delete(key);
+        resolver.clearInitState(...keys);
+        resolver.clearDepGraph(...keys);
+        resolver.clearWarningsForKeys(...keys);
       }
-      resolver.clearInitState(...keys);
     },
 
     inspect: () => introspection.inspect(),
@@ -136,13 +188,24 @@ export function buildContainerProxy(
     dispose: async () => {
       const cache = resolver.getCache();
       const entries = [...cache.entries()].reverse();
+      const errors: unknown[] = [];
       for (const [, instance] of entries) {
         if (hasOnDestroy(instance)) {
-          await instance.onDestroy();
+          try {
+            await instance.onDestroy();
+          } catch (error) {
+            errors.push(error);
+          }
         }
       }
       cache.clear();
       resolver.clearAllInitState();
+      resolver.clearAllDepGraph();
+      resolver.clearWarnings();
+      if (errors.length === 1) throw errors[0];
+      if (errors.length > 1) {
+        throw new AggregateError(errors, `dispose() encountered ${errors.length} errors`);
+      }
     },
   };
 

@@ -19,6 +19,7 @@
 
 export { ContainerBuilder, container } from './application/container-builder.js';
 export {
+  AsyncInitErrorWarning,
   CircularDependencyError,
   ContainerConfigError,
   ContainerError,

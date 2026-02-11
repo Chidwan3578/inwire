@@ -21,26 +21,34 @@ describe('preload', () => {
   });
 
   it('initializes independent branches in parallel', async () => {
-    const start = Date.now();
+    const events: string[] = [];
 
     const c = container()
       .add('db', () => ({
         async onInit() {
-          await sleep(50);
+          events.push('db:start');
+          await sleep(10);
+          events.push('db:end');
         },
       }))
       .add('cache', () => ({
         async onInit() {
-          await sleep(50);
+          events.push('cache:start');
+          await sleep(10);
+          events.push('cache:end');
         },
       }))
       .build();
 
     await c.preload();
-    const elapsed = Date.now() - start;
 
-    // If sequential, would be ~100ms. Parallel should be ~50ms.
-    expect(elapsed).toBeLessThan(90);
+    // If parallel, both start before either ends
+    const dbStart = events.indexOf('db:start');
+    const cacheStart = events.indexOf('cache:start');
+    const dbEnd = events.indexOf('db:end');
+    const cacheEnd = events.indexOf('cache:end');
+
+    expect(Math.max(dbStart, cacheStart)).toBeLessThan(Math.min(dbEnd, cacheEnd));
   });
 
   it('respects topological order (deps before dependents)', async () => {
@@ -246,5 +254,178 @@ describe('preload', () => {
 
     await c.preload();
     expect(inited).toEqual(['db']);
+  });
+
+  it('preload on scoped container resolves parent deps transitively', async () => {
+    const inited: string[] = [];
+
+    const parent = container()
+      .add('config', () => ({
+        onInit() {
+          inited.push('config');
+        },
+      }))
+      .build();
+
+    const child = parent.scope({
+      service: (c) => ({
+        config: c.config,
+        onInit() {
+          inited.push('service');
+        },
+      }),
+    });
+
+    await child.preload();
+    expect(inited).toContain('service');
+    expect(inited).toContain('config');
+  });
+
+  it('preload on empty container is a no-op', async () => {
+    const c = container().build();
+    // Should not throw
+    await c.preload();
+  });
+
+  it('preload with transient deps', async () => {
+    const inited: string[] = [];
+
+    const c = container()
+      .add('config', () => ({
+        onInit() {
+          inited.push('config');
+        },
+      }))
+      .addTransient('id', () => Math.random())
+      .build();
+
+    await c.preload();
+    expect(inited).toContain('config');
+  });
+
+  describe('error recovery', () => {
+    it('onInit fires on lazy access after preload fails in resolve phase', async () => {
+      let inited = false;
+
+      const c = container()
+        .add('bad', () => {
+          throw new Error('factory boom');
+        })
+        .add('good', () => ({
+          onInit() {
+            inited = true;
+          },
+        }))
+        .build();
+
+      await expect(c.preload()).rejects.toThrow('factory boom');
+
+      // deferOnInit must be reset via finally — onInit should still fire
+      c.good;
+      expect(inited).toBe(true);
+    });
+
+    it('retry preload calls onInit again for previously failed keys', async () => {
+      let attempt = 0;
+
+      const c = container()
+        .add('db', () => ({
+          async onInit() {
+            attempt++;
+            if (attempt === 1) throw new Error('connection refused');
+          },
+        }))
+        .build();
+
+      await expect(c.preload()).rejects.toThrow('connection refused');
+
+      // Retry — should succeed now (initCalled not set for failed keys)
+      await c.preload();
+      expect(attempt).toBe(2);
+    });
+
+    it('preload collects all onInit errors as AggregateError', async () => {
+      const c = container()
+        .add('a', () => ({
+          async onInit() {
+            throw new Error('a failed');
+          },
+        }))
+        .add('b', () => ({
+          async onInit() {
+            throw new Error('b failed');
+          },
+        }))
+        .build();
+
+      try {
+        await c.preload();
+        expect.unreachable('should have thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(AggregateError);
+        expect((error as AggregateError).errors).toHaveLength(2);
+      }
+    });
+
+    it('preload initializes healthy deps even when others fail', async () => {
+      let goodInited = false;
+
+      const c = container()
+        .add('good', () => ({
+          onInit() {
+            goodInited = true;
+          },
+        }))
+        .add('bad', () => ({
+          async onInit() {
+            throw new Error('boom');
+          },
+        }))
+        .build();
+
+      await expect(c.preload()).rejects.toThrow('boom');
+      expect(goodInited).toBe(true);
+    });
+
+    it('onInit fires after preload caches then fails on a later key', async () => {
+      let inited = false;
+
+      const c = container()
+        .add('good', () => ({
+          onInit() {
+            inited = true;
+          },
+        }))
+        .add('bad', () => {
+          throw new Error('factory boom');
+        })
+        .build();
+
+      await expect(c.preload()).rejects.toThrow('factory boom');
+
+      // good was cached during deferred phase, then evicted on failure
+      // lazy access must re-resolve and fire onInit
+      c.good;
+      expect(inited).toBe(true);
+    });
+
+    it('transient onInit fires after preload', async () => {
+      let inited = false;
+
+      const c = container()
+        .addTransient('svc', () => ({
+          onInit() {
+            inited = true;
+          },
+        }))
+        .build();
+
+      await c.preload();
+
+      // preload can't call onInit for transients (not in cache)
+      // but lazy access must still fire it
+      c.svc;
+      expect(inited).toBe(true);
+    });
   });
 });

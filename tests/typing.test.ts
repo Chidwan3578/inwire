@@ -215,6 +215,46 @@ describe('Builder type safety', () => {
     expect(() => container().add('scope' as any, () => 'x')).toThrow(ReservedKeyError);
   });
 
+  it('instance value with onInit interface — lifecycle fires', () => {
+    let initialized = false;
+    const c = container()
+      .add('config', {
+        host: 'localhost',
+        onInit() {
+          initialized = true;
+        },
+      })
+      .build();
+
+    // Instance values are wrapped in () => value, so onInit is on the resolved object
+    c.config;
+    expect(initialized).toBe(true);
+  });
+
+  it('instance value: same reference after registration', () => {
+    const obj = { x: 1, y: 2 };
+    const c = container().add('data', obj).build();
+
+    expect(c.data).toBe(obj);
+    expect(c.data).toBe(obj); // still same reference
+  });
+
+  it('instance value in preload', async () => {
+    let initCalled = false;
+    const c = container()
+      .add('config', {
+        env: 'test',
+        onInit() {
+          initCalled = true;
+        },
+      })
+      .build();
+
+    await c.preload('config');
+    expect(c.config.env).toBe('test');
+    expect(initCalled).toBe(true);
+  });
+
   it('c in scope/extend is typed as the parent', () => {
     const app = container()
       .add('logger', () => ({ log: (msg: string) => msg }))

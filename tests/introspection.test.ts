@@ -115,4 +115,100 @@ describe('introspection', () => {
       expect(str).toContain('(pending)');
     });
   });
+
+  describe('scoped introspection', () => {
+    it('inspect() on scoped shows only local providers', () => {
+      const parent = container()
+        .add('db', () => 'pg')
+        .add('logger', () => 'log')
+        .build();
+
+      const child = parent.scope({
+        requestId: () => 'req-1',
+      });
+
+      child.requestId;
+
+      const graph = child.inspect();
+      expect(graph.providers.requestId).toBeDefined();
+      expect(graph.providers.requestId.resolved).toBe(true);
+      // Parent providers are NOT in child's inspect — only local factories
+      expect(graph.providers.db).toBeUndefined();
+    });
+
+    it('describe() on scoped for a parent dep returns default', () => {
+      const parent = container()
+        .add('db', () => 'pg')
+        .build();
+
+      const child = parent.scope({
+        service: () => 'svc',
+      });
+
+      // db is not a local factory in child
+      const info = child.describe('db');
+      expect(info.resolved).toBe(false);
+      expect(info.deps).toEqual([]);
+    });
+
+    it('health() on scoped counts only local providers', () => {
+      const parent = container()
+        .add('db', () => 'pg')
+        .add('logger', () => 'log')
+        .build();
+
+      const child = parent.scope({
+        requestId: () => 'req-1',
+        handler: () => 'handler',
+      });
+
+      child.requestId;
+
+      const health = child.health();
+      expect(health.totalProviders).toBe(2); // only requestId + handler
+      expect(health.resolved).toEqual(['requestId']);
+      expect(health.unresolved).toEqual(['handler']);
+    });
+  });
+
+  describe('extended introspection', () => {
+    it('inspect() on extended shows all merged providers', () => {
+      const base = container()
+        .add('db', () => 'pg')
+        .build();
+
+      base.db;
+
+      const extended = base.extend({
+        cache: () => 'redis',
+      });
+
+      extended.cache;
+
+      const graph = extended.inspect();
+      expect(graph.providers.db).toBeDefined();
+      expect(graph.providers.db.resolved).toBe(true);
+      expect(graph.providers.cache).toBeDefined();
+      expect(graph.providers.cache.resolved).toBe(true);
+    });
+
+    it('health() on extended includes all providers', () => {
+      const base = container()
+        .add('a', () => 1)
+        .add('b', () => 2)
+        .build();
+
+      base.a;
+
+      const extended = base.extend({
+        c: () => 3,
+      });
+
+      const health = extended.health();
+      expect(health.totalProviders).toBe(3);
+      expect(health.resolved).toContain('a');
+      expect(health.unresolved).toContain('b');
+      expect(health.unresolved).toContain('c');
+    });
+  });
 });

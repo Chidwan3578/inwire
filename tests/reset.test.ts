@@ -93,4 +93,65 @@ describe('reset', () => {
     expect(parent.db.id).toBe(1);
     expect(parentCount).toBe(1);
   });
+
+  describe('reset + introspection', () => {
+    it('after reset, inspect() shows resolved=false', () => {
+      const c = container()
+        .add('db', () => 'postgres')
+        .build();
+
+      c.db;
+      expect(c.inspect().providers.db.resolved).toBe(true);
+
+      c.reset('db');
+      expect(c.inspect().providers.db.resolved).toBe(false);
+    });
+
+    it('after reset, describe() shows resolved=false and deps=[]', () => {
+      const c = container()
+        .add('config', () => ({ host: 'localhost' }))
+        .add('db', (c) => `pg://${c.config.host}`)
+        .build();
+
+      c.db;
+      expect(c.describe('db').resolved).toBe(true);
+      expect(c.describe('db').deps).toEqual(['config']);
+
+      c.reset('db');
+      expect(c.describe('db').resolved).toBe(false);
+      expect(c.describe('db').deps).toEqual([]);
+    });
+
+    it('after reset, health() updates resolved/unresolved', () => {
+      const c = container()
+        .add('a', () => 1)
+        .add('b', () => 2)
+        .build();
+
+      c.a;
+      c.b;
+      expect(c.health().resolved).toEqual(['a', 'b']);
+      expect(c.health().unresolved).toEqual([]);
+
+      c.reset('a');
+      expect(c.health().resolved).toEqual(['b']);
+      expect(c.health().unresolved).toEqual(['a']);
+    });
+
+    it('reset without args clears all cache + depGraph', () => {
+      const c = container()
+        .add('a', () => 1)
+        .add('b', (deps) => deps.a + 1)
+        .build();
+
+      c.b;
+      expect(c.health().resolved).toEqual(['a', 'b']);
+      expect(c.describe('b').deps).toEqual(['a']);
+
+      c.reset();
+      expect(c.health().resolved).toEqual([]);
+      expect(c.health().unresolved).toEqual(['a', 'b']);
+      expect(c.describe('b').deps).toEqual([]);
+    });
+  });
 });

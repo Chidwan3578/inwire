@@ -234,7 +234,11 @@ export interface IValidator {
  * Builds the dependency graph automatically via a tracking Proxy.
  */
 export interface IDependencyTracker {
-  createTrackingProxy(deps: string[], chain: string[], resolve: (key: string, chain: string[]) => unknown): unknown;
+  createTrackingProxy(
+    deps: string[],
+    chain: string[],
+    resolve: (key: string, chain: string[]) => unknown,
+  ): unknown;
   getDepGraph(): Map<string, string[]>;
   recordDeps(key: string, deps: string[]): void;
   clearDepGraph(...keys: string[]): void;

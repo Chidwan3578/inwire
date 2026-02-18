@@ -5,7 +5,10 @@ describe('DependencyTracker', () => {
   it('records deps via tracking proxy', () => {
     const tracker = new DependencyTracker();
     const deps: string[] = [];
-    const resolved = new Map<string, unknown>([['db', 'db-instance'], ['logger', 'logger-instance']]);
+    const resolved = new Map<string, unknown>([
+      ['db', 'db-instance'],
+      ['logger', 'logger-instance'],
+    ]);
 
     const proxy = tracker.createTrackingProxy(deps, [], (key) => resolved.get(key));
 

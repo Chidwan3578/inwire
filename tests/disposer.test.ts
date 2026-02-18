@@ -30,9 +30,30 @@ describe('Disposer', () => {
   it('calls onDestroy in reverse resolution order', async () => {
     const order: string[] = [];
     const cache = new Map<string, unknown>([
-      ['first', { onDestroy: () => { order.push('first'); } }],
-      ['second', { onDestroy: () => { order.push('second'); } }],
-      ['third', { onDestroy: () => { order.push('third'); } }],
+      [
+        'first',
+        {
+          onDestroy: () => {
+            order.push('first');
+          },
+        },
+      ],
+      [
+        'second',
+        {
+          onDestroy: () => {
+            order.push('second');
+          },
+        },
+      ],
+      [
+        'third',
+        {
+          onDestroy: () => {
+            order.push('third');
+          },
+        },
+      ],
     ]);
 
     const disposer = new Disposer(createMockResolver(cache));
@@ -43,9 +64,30 @@ describe('Disposer', () => {
 
   it('continues on error and throws AggregateError', async () => {
     const cache = new Map<string, unknown>([
-      ['a', { onDestroy: () => { throw new Error('fail-a'); } }],
-      ['b', { onDestroy: () => { /* ok */ } }],
-      ['c', { onDestroy: () => { throw new Error('fail-c'); } }],
+      [
+        'a',
+        {
+          onDestroy: () => {
+            throw new Error('fail-a');
+          },
+        },
+      ],
+      [
+        'b',
+        {
+          onDestroy: () => {
+            /* ok */
+          },
+        },
+      ],
+      [
+        'c',
+        {
+          onDestroy: () => {
+            throw new Error('fail-c');
+          },
+        },
+      ],
     ]);
 
     const disposer = new Disposer(createMockResolver(cache));
@@ -54,7 +96,14 @@ describe('Disposer', () => {
 
   it('throws single error directly (not AggregateError)', async () => {
     const cache = new Map<string, unknown>([
-      ['a', { onDestroy: () => { throw new Error('single-fail'); } }],
+      [
+        'a',
+        {
+          onDestroy: () => {
+            throw new Error('single-fail');
+          },
+        },
+      ],
     ]);
 
     const disposer = new Disposer(createMockResolver(cache));

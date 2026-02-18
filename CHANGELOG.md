@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/axelhamil/inwire/compare/v2.1.1...v2.1.2) (2026-02-18)
+
+
+### Bug Fixes
+
+* relax generic constraints to support interfaces without index signatures ([#1](https://github.com/axelhamil/inwire/issues/1)) ([ca98778](https://github.com/axelhamil/inwire/commit/ca987785b500ead5e33893cda08c3d2b473edd3b))
+
 ## [2.1.1](https://github.com/axelhamil/inwire/compare/v2.1.0...v2.1.1) (2026-02-11)
 
 

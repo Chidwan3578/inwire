@@ -1,3 +1,10 @@
+## [2.1.4](https://github.com/axelhamil/inwire/compare/v2.1.3...v2.1.4) (2026-02-19)
+
+
+### Bug Fixes
+
+* restore @semantic-release/git and use PAT for release ([98f92d2](https://github.com/axelhamil/inwire/commit/98f92d2852e02707275862e011eeb874c8f73d1c))
+
 ## [2.1.2](https://github.com/axelhamil/inwire/compare/v2.1.1...v2.1.2) (2026-02-18)
 
 

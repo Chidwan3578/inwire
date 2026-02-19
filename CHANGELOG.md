@@ -1,3 +1,10 @@
+## [2.1.5](https://github.com/axelhamil/inwire/compare/v2.1.4...v2.1.5) (2026-02-19)
+
+
+### Bug Fixes
+
+* disable hash in tsdown output filenames ([eede35f](https://github.com/axelhamil/inwire/commit/eede35f33c0b06f5063eb2b8873299ca228f696e))
+
 ## [2.1.4](https://github.com/axelhamil/inwire/compare/v2.1.3...v2.1.4) (2026-02-19)
 
 

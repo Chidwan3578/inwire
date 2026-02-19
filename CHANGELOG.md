@@ -1,3 +1,10 @@
+## [2.1.7](https://github.com/axelhamil/inwire/compare/v2.1.6...v2.1.7) (2026-02-19)
+
+
+### Bug Fixes
+
+* upgrade all devDependencies to latest versions ([e43e832](https://github.com/axelhamil/inwire/commit/e43e8328666d2ae248d49f77c775b3ec2c196f6d))
+
 ## [2.1.6](https://github.com/axelhamil/inwire/compare/v2.1.5...v2.1.6) (2026-02-19)
 
 
